@@ -1,0 +1,12 @@
+# Local tools and installed dependencies
+.playwright-cli/
+**/node_modules/
+
+# Original curriculum/source documents and standards are not part of the public release
+lessons/**/source/
+reference/
+
+# Browser-generated classroom test artifacts
+lessons/**/verification/current/
+lessons/**/verification/*.png
+lessons/**/output/*.png

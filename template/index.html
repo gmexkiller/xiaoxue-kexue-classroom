@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>小学科学交互教学平台</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      min-height: 100%;
+      font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+      background: #f4f6f8;
+      color: #1f2937;
+    }
+
+    button {
+      font: inherit;
+      cursor: pointer;
+    }
+
+    #app {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      min-height: 72px;
+      padding: 12px 24px;
+      background: white;
+      border-bottom: 1px solid #d9dee5;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    main {
+      flex: 1;
+      padding: 20px;
+    }
+
+    .workspace {
+      max-width: 1440px;
+      margin: 0 auto;
+      min-height: calc(100vh - 112px);
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr);
+      gap: 20px;
+    }
+
+    .main-area,
+    .control-area {
+      background: white;
+      border: 1px solid #d9dee5;
+      border-radius: 16px;
+      padding: 20px;
+    }
+
+    @media (max-width: 900px) {
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <header>
+      <strong id="lessonTitle">课程名称</strong>
+      <div id="stageNav">课堂阶段导航</div>
+    </header>
+
+    <main>
+      <div class="workspace">
+        <section class="main-area">
+          核心实验 / 观察 / 模型区域
+        </section>
+
+        <aside class="control-area">
+          教师问题 / 操作 / 记录区域
+        </aside>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const state = {
+      stage: 0
+    };
+
+    function render() {
+      // 后续课程根据实际教学需求实现
+    }
+
+    render();
+  </script>
+</body>
+</html>

@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>气温计与温度认知 - 互动科学课件</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: "PingFang SC", "Microsoft YaHei", "Comic Sans MS", sans-serif;
+            background: #eef6fc;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            color: #2c3e50;
+        }
+
+        /* 顶部标题与核心原理 */
+        header {
+            background: #ffffff;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+            box-shadow: 0 4px 15px rgba(0, 75, 140, 0.08);
+            z-index: 10;
+        }
+        .header-title {
+            font-size: 26px;
+            font-weight: 900;
+            color: #0d47a1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            min-width: 0;
+        }
+        /* 课件作者署名 */
+        .credit-chip {
+            font-size: 17px;
+            font-weight: bold;
+            color: #e65100;
+            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+            border: 2px solid #ffb74d;
+            padding: 7px 18px;
+            border-radius: 25px;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 3px 10px rgba(230, 81, 0, 0.15);
+        }
+        .science-principle {
+            font-size: 18px;
+            font-weight: bold;
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 2px dashed #4caf50;
+            padding: 8px 18px;
+            border-radius: 25px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        /* 主学习区：左右分栏 */
+        .main-container {
+            flex: 1;
+            display: flex;
+            padding: 16px 24px;
+            gap: 24px;
+            overflow: hidden;
+        }
+
+        /* 左侧：气温计交互展示台 */
+        .thermo-stage {
+            flex: 1.1;
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            padding: 10px;
+        }
+
+        /* 气温计外形构件 */
+        .thermo-plate {
+            position: relative;
+            width: 220px;
+            height: 94%;
+            background: #ffffff;
+            border: 4px solid #b0bec5;
+            border-radius: 30px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.05), 0 8px 20px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: center;
+        }
+
+        /* 顶部单位符号 */
+        .unit-symbol-box {
+            position: absolute;
+            top: 14px;
+            width: 80%;
+            display: flex;
+            justify-content: space-between;
+            font-size: 28px;
+            font-weight: 900;
+            color: #0d47a1;
+            padding: 0 10px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .unit-symbol-box:hover {
+            transform: scale(1.1);
+        }
+
+        /* 玻璃细管与刻度层 */
+        .glass-tube {
+            position: absolute;
+            top: 55px;
+            bottom: 60px;
+            width: 14px;
+            background: #f1f5f9;
+            border-radius: 8px;
+            border: 2px solid #90a4ae;
+            box-shadow: inset 2px 2px 4px rgba(0,0,0,0.15);
+            z-index: 2;
+        }
+        /* 内部红色液体柱 */
+        .liquid-column {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(90deg, #ff5252, #d32f2f);
+            border-radius: 0 0 6px 6px;
+            transition: height 0.12s ease-out;
+        }
+        .liquid-meniscus {
+            position: absolute;
+            top: -5px;
+            left: -1px;
+            right: -1px;
+            height: 8px;
+            background: #ff1744;
+            border-radius: 50%;
+        }
+
+        /* 底部玻璃泡 */
+        .glass-bulb {
+            position: absolute;
+            bottom: 12px;
+            width: 44px;
+            height: 44px;
+            background: radial-gradient(circle at 35% 35%, #ff8a80, #c62828 70%);
+            border: 3px solid #78909c;
+            border-radius: 50%;
+            z-index: 3;
+            box-shadow: 0 4px 10px rgba(198, 40, 40, 0.4);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .glass-bulb:hover {
+            transform: scale(1.12);
+        }
+
+        /* 刻度线标绘尺 */
+        .scale-ruler {
+            position: absolute;
+            top: 55px;
+            bottom: 60px;
+            width: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* 部件标签指示卡 */
+        .part-indicator {
+            position: absolute;
+            background: #ffffff;
+            border: 2px solid #1976d2;
+            color: #0d47a1;
+            font-size: 16px;
+            font-weight: bold;
+            padding: 6px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            z-index: 4;
+            touch-action: manipulation;
+        }
+        .part-indicator:hover, .part-indicator.active {
+            background: #1976d2;
+            color: #ffffff;
+            transform: scale(1.08);
+        }
+
+        /* 右侧：仪表、微观演示与学习区 */
+        .dashboard-stage {
+            flex: 1.3;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* 当前温度卡片 */
+        .reading-card {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 16px 22px;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .temp-display {
+            font-size: 46px;
+            font-weight: 900;
+            color: #d32f2f;
+        }
+        .temp-reading-text {
+            font-size: 20px;
+            font-weight: bold;
+            color: #546e7a;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .text-hl {
+            color: #0277bd;
+            font-weight: 900;
+        }
+
+        /* 教师抽查模式：答案遮罩层（默认隐藏） */
+        .reading-cover {
+            flex: 1;
+            text-align: center;
+            padding: 8px 0;
+        }
+        .reading-cover .cover-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 26px;
+            font-weight: 900;
+            color: #78909c;
+        }
+        .reading-cover .cover-sub {
+            margin-top: 6px;
+            font-size: 15px;
+            font-weight: bold;
+            color: #90a4ae;
+        }
+        .reading-main.hidden {
+            display: none;
+        }
+
+        /* 教师工具栏（左侧悬浮，两枚开关按钮） */
+        .stage-tools {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 6;
+        }
+        .stage-ctl {
+            font-size: 16px;
+            font-weight: bold;
+            border: 2px solid #90a4ae;
+            background: #ffffff;
+            color: #455a64;
+            border-radius: 22px;
+            padding: 8px 14px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+            touch-action: manipulation;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+        }
+        .stage-ctl:hover {
+            transform: scale(1.05);
+        }
+        .stage-ctl.active {
+            background: #1976d2;
+            border-color: #1976d2;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.35);
+        }
+
+        /* 示数放大镜（悬浮镜片） */
+        .mag-panel {
+            display: none;
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 182px;            /* 固定：160 画布 + 内边距 + 边框，防止文字把面板撑宽压到温度计 */
+            background: #ffffff;
+            border-radius: 18px;
+            border: 3px solid #1976d2;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+            padding: 8px 8px 10px;
+            z-index: 5;
+            pointer-events: none;
+            text-align: center;
+        }
+        .mag-panel.on {
+            display: block;
+        }
+        .mag-title {
+            font-size: 13px;
+            font-weight: 900;
+            color: #0d47a1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        .mag-drag-handle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: move;
+            padding: 2px 4px 4px;
+            margin-bottom: 4px;
+            border-bottom: 1px dashed #cfd8dc;
+            pointer-events: auto;       /* 仅手柄可点击/拖动，透传其余区域到温度计 */
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+            width: 100%;        /* 与画布同宽，避免标题把面板撑宽、压到温度计 */
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+        .mag-grip {
+            font-size: 12px;
+            color: #90a4ae;
+            letter-spacing: -2px;
+            flex-shrink: 0;
+        }
+        .mag-title .zoom-badge {
+            font-size: 12px;
+            background: #e3f2fd;
+            color: #1565c0;
+            border-radius: 10px;
+            padding: 1px 8px;
+        }
+        .mag-note {
+            font-size: 12px;
+            color: #90a4ae;
+            margin-top: 5px;
+        }
+        #magCanvas {
+            display: block;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            background: #fbfdff;
+        }
+
+        /* 微观热胀冷缩分子互动小窗口 */
+        .micro-card {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 14px 20px;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .micro-canvas-box {
+            width: 130px;
+            height: 110px;
+            background: #263238;
+            border-radius: 14px;
+            border: 3px solid #ffab91;
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .micro-desc {
+            font-size: 16px;
+            line-height: 1.5;
+            color: #37474f;
+        }
+        .micro-desc b {
+            color: #d84315;
+            font-size: 18px;
+        }
+
+        /* 生活测量场景预设 (大触控按钮) */
+        .scene-card {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 16px 20px;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+        }
+        .section-title {
+            font-size: 19px;
+            font-weight: bold;
+            margin-bottom: 12px;
+            color: #37474f;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .scene-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        .scene-btn {
+            background: #f8fafc;
+            border: 2px solid #cfd8dc;
+            border-radius: 14px;
+            padding: 12px 6px;
+            font-size: 17px;
+            font-weight: bold;
+            color: #37474f;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.15s;
+            touch-action: manipulation;
+        }
+        .scene-btn:active {
+            transform: scale(0.93);
+        }
+        .scene-btn.active {
+            background: #e1f5fe;
+            border-color: #03a9f4;
+            color: #0288d1;
+            box-shadow: 0 4px 10px rgba(3, 169, 244, 0.25);
+        }
+
+        /* 底部触控大调节按钮 */
+        .stepper-row {
+            display: flex;
+            gap: 12px;
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 14px 20px;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+            align-items: center;
+        }
+        .step-btn {
+            flex: 1;
+            font-size: 22px;
+            font-weight: bold;
+            padding: 14px 0;
+            border-radius: 16px;
+            border: none;
+            color: #ffffff;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            transition: transform 0.1s;
+            touch-action: manipulation;
+        }
+        .step-btn:active {
+            transform: scale(0.92);
+        }
+        .btn-down { background: linear-gradient(135deg, #29b6f6, #0288d1); }
+        .btn-up { background: linear-gradient(135deg, #ff7043, #e64a19); }
+
+        /* 知识解说气泡 */
+        #knowledge-dialog {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            opacity: 0;
+            background: #263238;
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: bold;
+            padding: 14px 28px;
+            border-radius: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 100;
+        }
+        #knowledge-dialog.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-title">🌡️ 小学科学：认识气温计与读数</div>
+        <div class="header-right">
+            <div class="credit-chip" title="课件作者">👩‍🏫 课件制作：小胡老师</div>
+            <div class="science-principle">▲ 气温计是根据液体热胀冷缩的科学原理制成的</div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <!-- 左侧：气温计交互主体 -->
+        <div class="thermo-stage" id="thermoTouchZone">
+            <div class="thermo-plate">
+                <!-- 1. 单位符号 -->
+                <div class="unit-symbol-box" onclick="explainPart('unit')">
+                    <span>℃</span>
+                    <span>℃</span>
+                </div>
+
+                <!-- 刻度尺 -->
+                <div class="scale-ruler" id="scaleRuler"></div>
+
+                <!-- 2. 玻璃细管与红液柱 -->
+                <div class="glass-tube">
+                    <div class="liquid-column" id="liquidCol">
+                        <div class="liquid-meniscus"></div>
+                    </div>
+                </div>
+
+                <!-- 3. 玻璃泡 -->
+                <div class="glass-bulb" id="bulb" onclick="explainPart('bulb')"></div>
+            </div>
+
+            <!-- 图文对应的标注热区 -->
+            <div class="part-indicator" style="top: 8%; right: 4%;" onclick="explainPart('unit')">📌 单位符号</div>
+            <div class="part-indicator" style="top: 36%; right: 4%;" onclick="explainPart('scale')">📌 刻度 (标记数值)</div>
+            <div class="part-indicator" style="top: 56%; right: 4%;" onclick="explainPart('liquid')">📌 液柱 (升降指示)</div>
+            <div class="part-indicator" style="bottom: 5%; right: 4%;" onclick="explainPart('bulb')">📌 玻璃泡 (感应温差)</div>
+
+            <!-- 教师工具栏：隐藏答案 / 示数放大镜 / 随机出题 -->
+            <div class="stage-tools">
+                <button class="stage-ctl" id="btnHideAnswer" onclick="toggleAnswers()" title="快捷键 H">🙈 隐藏答案 (H)</button>
+                <button class="stage-ctl" id="btnMagnifier" onclick="toggleMagnifier()" title="快捷键 L">🔍 示数放大镜 (L)</button>
+                <button class="stage-ctl" id="btnRandom" onclick="randomQuiz()" title="快捷键 R">🎲 随机出题 (R)</button>
+            </div>
+
+            <!-- 示数放大镜镜片：实时放大液面附近的刻度（手柄可拖动） -->
+            <div class="mag-panel" id="magPanel">
+                <div class="mag-drag-handle" id="magHandle" title="按住拖动放大镜">
+                    <span class="mag-grip">⋮⋮</span>
+                    <span class="mag-title">🔍 放大镜<span class="zoom-badge">×3</span></span>
+                </div>
+                <canvas id="magCanvas" width="160" height="336"></canvas>
+                <div class="mag-note">液面上下 6℃ 范围 ×3 放大，便于精确读数</div>
+            </div>
+        </div>
+
+        <!-- 右侧：读写训练与原理探究 -->
+        <div class="dashboard-stage">
+            <!-- 读数大卡片 -->
+            <div class="reading-card">
+                <div class="reading-main" id="readingMain">
+                    <div>
+                        <div class="temp-display" id="tempNumber">20℃</div>
+                        <div style="font-size: 16px; color: #78909c; margin-top: 4px;">手指可直接在左侧刻度尺上下滑动调节！</div>
+                    </div>
+                    <div class="temp-reading-text">
+                        <div>读作：<span class="text-hl" id="readSpell">二十摄氏度</span></div>
+                        <div>写作：<span class="text-hl" id="writeSpell">20 ℃</span></div>
+                        <div style="font-size: 15px; color: #e65100;" id="zeroHint">🔥 属于零上温度</div>
+                    </div>
+                </div>
+                <!-- 抽查模式遮罩：隐藏读数答案 -->
+                <div class="reading-cover" id="readingCover" hidden>
+                    <div class="cover-row"><span>🙈</span><span>答案已隐藏</span></div>
+                    <div class="cover-sub">请同学们观察左侧温度计的刻度<br>读出并写出当前温度</div>
+                </div>
+            </div>
+
+            <!-- 微观热胀冷缩视窗 -->
+            <div class="micro-card">
+                <div class="micro-canvas-box">
+                    <canvas id="microCanvas" width="130" height="110"></canvas>
+                </div>
+                <div class="micro-desc">
+                    <b>🔬 玻璃泡微观原理：</b><br>
+                    当受热时，液体粒子<b>振动剧烈、间距变大（热胀）</b>，液柱上升；<br>
+                    遇冷时，粒子<b>运动变慢、紧密靠拢（冷缩）</b>，液柱下降。
+                </div>
+            </div>
+
+            <!-- 生活场景预设 -->
+            <div class="scene-card">
+                <div class="section-title">🌍 模拟生活常见温度 (点击快速测温)：</div>
+                <div class="scene-grid">
+                    <button class="scene-btn" data-temp="-15" onclick="applyPreset(-15, '❄️ 寒冬冰雪')">❄️ 极寒冬天<br>-15℃</button>
+                    <button class="scene-btn" data-temp="0" onclick="applyPreset(0, '🧊 冰水混合物')">🧊 冰水混合<br>0℃</button>
+                    <button class="scene-btn active" data-temp="20" onclick="applyPreset(20, '🏠 舒适室内')">🏠 舒适室温<br>20℃</button>
+                    <button class="scene-btn" data-temp="38" onclick="applyPreset(38, '☀️ 酷暑烈日')">☀️ 盛夏烈日<br>38℃</button>
+                </div>
+            </div>
+
+            <!-- 大按键步进调节 -->
+            <div class="stepper-row">
+                <button class="step-btn btn-down" onclick="stepTemp(-5)">- 5℃</button>
+                <button class="step-btn btn-down" onclick="stepTemp(-1)">- 1℃</button>
+                <button class="step-btn btn-up" onclick="stepTemp(1)">+ 1℃</button>
+                <button class="step-btn btn-up" onclick="stepTemp(5)">+ 5℃</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 知识讲解气泡窗口 -->
+    <div id="knowledge-dialog">气温计部件知识讲解</div>
+
+    <script>
+        /* ================= 1. 物理音效合成引擎 (Web Audio API) ================= */
+        let audioCtx = null;
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        // 升温/降温音效（根据升降方向合成滑音与气泡声）
+        function playTone(direction) {
+            initAudio();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            const now = audioCtx.currentTime;
+            if (direction > 0) {
+                // 上升欢快音
+                osc.frequency.setValueAtTime(320, now);
+                osc.frequency.exponentialRampToValueAtTime(600, now + 0.1);
+            } else {
+                // 下降滑音
+                osc.frequency.setValueAtTime(550, now);
+                osc.frequency.exponentialRampToValueAtTime(280, now + 0.1);
+            }
+
+            gain.gain.setValueAtTime(0.12, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+            osc.start();
+            osc.stop(now + 0.1);
+        }
+
+        function playDing() {
+            initAudio();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(900, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1400, audioCtx.currentTime + 0.15);
+            gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.15);
+        }
+
+        /* ================= 2. 刻度与温度核心数据 ================= */
+        // 范围：-30℃ 到 50℃，跨度 80 度
+        const MIN_TEMP = -30;
+        const MAX_TEMP = 50;
+        const TOTAL_SPAN = MAX_TEMP - MIN_TEMP;
+
+        let currentTemp = 20;
+        let magOn = false;   // 放大镜开关（前置声明，供 updateTemperature 联动使用）
+
+        // 生成高精度清晰刻度线 (与教材一致：左右两侧标数与对称刻度)
+        const scaleRuler = document.getElementById('scaleRuler');
+        function buildScaleTicks() {
+            scaleRuler.innerHTML = '';
+            for (let t = MAX_TEMP; t >= MIN_TEMP; t--) {
+                const percent = ((MAX_TEMP - t) / TOTAL_SPAN) * 100;
+                
+                // 大刻度（每10℃）
+                if (t % 10 === 0) {
+                    const row = document.createElement('div');
+                    row.style.position = 'absolute';
+                    row.style.top = `${percent}%`;
+                    row.style.width = '100%';
+                    row.style.display = 'flex';
+                    row.style.justifyContent = 'space-between';
+                    row.style.alignItems = 'center';
+                    row.style.transform = 'translateY(-50%)';
+
+                    // 0刻度加重标红区分零上与零下
+                    const isZero = (t === 0);
+                    const color = isZero ? '#d32f2f' : '#37474f';
+                    const weight = isZero ? '900' : 'bold';
+                    // 零下温度刻度补负号（0℃ 下方显示 -10、-20、-30），符合读数规范
+                    const numLabel = t < 0 ? '-' + Math.abs(t) : String(Math.abs(t));
+
+                    row.innerHTML = `
+                        <span style="font-size:18px; font-weight:${weight}; color:${color}; width:35px; text-align:right;">${numLabel}</span>
+                        <div style="width:26px; height:${isZero ? 3.5 : 2.5}px; background:${color};"></div>
+                        <div style="width:14px;"></div>
+                        <div style="width:26px; height:${isZero ? 3.5 : 2.5}px; background:${color};"></div>
+                        <span style="font-size:18px; font-weight:${weight}; color:${color}; width:35px; text-align:left;">${numLabel}</span>
+                    `;
+                    scaleRuler.appendChild(row);
+                } 
+                // 中刻度（每5℃）
+                else if (t % 5 === 0) {
+                    const midRow = document.createElement('div');
+                    midRow.style.position = 'absolute';
+                    midRow.style.top = `${percent}%`;
+                    midRow.style.width = '100%';
+                    midRow.style.display = 'flex';
+                    midRow.style.justifyContent = 'center';
+                    midRow.style.gap = '22px';
+                    midRow.style.transform = 'translateY(-50%)';
+                    midRow.innerHTML = `
+                        <div style="width:16px; height:2px; background:#78909c;"></div>
+                        <div style="width:16px; height:2px; background:#78909c;"></div>
+                    `;
+                    scaleRuler.appendChild(midRow);
+                }
+                // 小刻度（每1℃）
+                else {
+                    const smallRow = document.createElement('div');
+                    smallRow.style.position = 'absolute';
+                    smallRow.style.top = `${percent}%`;
+                    smallRow.style.width = '100%';
+                    smallRow.style.display = 'flex';
+                    smallRow.style.justifyContent = 'center';
+                    smallRow.style.gap = '26px';
+                    smallRow.style.transform = 'translateY(-50%)';
+                    smallRow.innerHTML = `
+                        <div style="width:9px; height:1px; background:#b0bec5;"></div>
+                        <div style="width:9px; height:1px; background:#b0bec5;"></div>
+                    `;
+                    scaleRuler.appendChild(smallRow);
+                }
+            }
+        }
+        buildScaleTicks();
+
+        /* ================= 3. 更新液柱与规范读写展示 ================= */
+        const liquidCol = document.getElementById('liquidCol');
+        const tempNumber = document.getElementById('tempNumber');
+        const readSpell = document.getElementById('readSpell');
+        const writeSpell = document.getElementById('writeSpell');
+        const zeroHint = document.getElementById('zeroHint');
+
+        // 数字转换为标准中文大写读音（解决零下与负数读法）
+        const numChinese = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十"];
+        // 音效节流：拖拽连续调温时避免 0.1s 内叠加大量振荡器
+        let lastToneAt = 0;
+        function toChineseTemp(n) {
+            if (n === 0) return "零摄氏度";
+            let prefix = n < 0 ? "零下" : "";
+            let abs = Math.abs(n);
+            let body = "";
+            if (abs <= 10) body = numChinese[abs];
+            else if (abs < 20) body = "十" + (abs % 10 === 0 ? "" : numChinese[abs % 10]);
+            else {
+                let tens = Math.floor(abs / 10);
+                let ones = abs % 10;
+                body = numChinese[tens] + "十" + (ones === 0 ? "" : numChinese[ones]);
+            }
+            return prefix + body + "摄氏度";
+        }
+
+        function updateTemperature(val, playAudio = true) {
+            val = Math.max(MIN_TEMP, Math.min(MAX_TEMP, Math.round(val)));
+            const diff = val - currentTemp;
+            const now = performance.now();
+            if (playAudio && diff !== 0 && now - lastToneAt > 60) {
+                playTone(diff);
+                lastToneAt = now;
+            }
+            currentTemp = val;
+
+            // 计算液柱高度百分比
+            const heightPercent = ((currentTemp - MIN_TEMP) / TOTAL_SPAN) * 100;
+            liquidCol.style.height = `${heightPercent}%`;
+
+            // 更新温度数字与颜色（零上暖色，零下冰蓝）
+            if (currentTemp > 0) {
+                tempNumber.style.color = '#d32f2f';
+                zeroHint.innerHTML = '🔥 属于零上温度（从0往上数）';
+                zeroHint.style.color = '#e64a19';
+            } else if (currentTemp < 0) {
+                tempNumber.style.color = '#0288d1';
+                zeroHint.innerHTML = '❄️ 属于零下温度（从0往下数，数越大越冷）';
+                zeroHint.style.color = '#0277bd';
+            } else {
+                tempNumber.style.color = '#2e7d32';
+                zeroHint.innerHTML = '💧 水的冰点 (0 ℃)';
+                zeroHint.style.color = '#2e7d32';
+            }
+
+            tempNumber.innerText = `${currentTemp}℃`;
+            readSpell.innerText = toChineseTemp(currentTemp);
+            writeSpell.innerText = `${currentTemp} ℃`;
+
+            // 放大镜开启时，跟随温度重绘放大画面
+            if (typeof magOn !== 'undefined' && magOn) drawMagnifier();
+        }
+        updateTemperature(20, false);
+
+        /* ================= 4. 触屏拖拽与滑动测温 ================= */
+        const touchZone = document.getElementById('thermoTouchZone');
+        let isDragging = false;
+
+        // 点击部件讲解热区时只弹出知识讲解、不进入拖拽调温，避免误改当前读数
+        const isPartHotspot = t => t.closest('.part-indicator, .glass-bulb, .unit-symbol-box, .stage-ctl, .mag-drag-handle');
+
+        function handlePointerMove(e) {
+            const rect = scaleRuler.getBoundingClientRect();
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            // 夹紧在刻度区域内
+            const clampedY = Math.max(rect.top, Math.min(rect.bottom, clientY));
+            const ratio = (clampedY - rect.top) / rect.height; // 0 (顶部) 到 1 (底部)
+            const targetT = Math.round(MAX_TEMP - ratio * TOTAL_SPAN);
+            // 手动滑动改变温度时，同步取消场景按钮的高亮，避免高亮残留误导
+            if (targetT !== currentTemp) clearSceneActive();
+            updateTemperature(targetT);
+        }
+
+        touchZone.addEventListener('mousedown', (e) => {
+            if (isPartHotspot(e.target)) return;
+            isDragging = true;
+            handlePointerMove(e);
+        });
+        window.addEventListener('mousemove', (e) => {
+            if (isDragging) handlePointerMove(e);
+        });
+        window.addEventListener('mouseup', () => isDragging = false);
+
+        // 移动端/平板触控事件
+        touchZone.addEventListener('touchstart', (e) => {
+            if (isPartHotspot(e.target)) return;
+            isDragging = true;
+            handlePointerMove(e);
+            e.preventDefault();
+        }, { passive: false });
+        window.addEventListener('touchmove', (e) => {
+            if (isDragging) {
+                handlePointerMove(e);
+                e.preventDefault();
+            }
+        }, { passive: false });
+        window.addEventListener('touchend', () => isDragging = false);
+        window.addEventListener('touchcancel', () => isDragging = false);
+
+        // 兜底：鼠标在窗口外松开 / 页面失焦时结束拖拽，防止拖拽状态卡死
+        window.addEventListener('blur', () => isDragging = false);
+
+        // 步进微调
+        function stepTemp(delta) {
+            updateTemperature(currentTemp + delta);
+            clearSceneActive();
+        }
+
+        // 场景应用
+        function applyPreset(temp, title) {
+            playDing();
+            updateTemperature(temp, false);
+
+            // 用 data-temp 精确匹配场景按钮，避免文本包含匹配（如 "0℃" 误点亮 "20℃"）
+            const btns = document.querySelectorAll('.scene-btn');
+            btns.forEach(b => b.classList.toggle('active', Number(b.dataset.temp) === temp));
+
+            showDialog(`已切换到场景：${title} (${temp}℃)`, temp);
+        }
+
+        function clearSceneActive() {
+            document.querySelectorAll('.scene-btn').forEach(b => b.classList.remove('active'));
+        }
+
+        /* ================= 5. 微观分子热胀冷缩仿真 Canvas ================= */
+        const mCanvas = document.getElementById('microCanvas');
+        const mCtx = mCanvas.getContext('2d');
+        const MOLECULE_COUNT = 32;
+        const molecules = [];
+
+        for (let i = 0; i < MOLECULE_COUNT; i++) {
+            molecules.push({
+                x: Math.random() * mCanvas.width,
+                y: Math.random() * mCanvas.height,
+                vx: (Math.random() - 0.5) * 2,
+                vy: (Math.random() - 0.5) * 2
+            });
+        }
+
+        function renderMicroCosm() {
+            mCtx.clearRect(0, 0, mCanvas.width, mCanvas.height);
+
+            // 温度越高，分子运动速度越快，相互碰撞排斥（膨胀）
+            const energy = Math.max(0.2, (currentTemp - MIN_TEMP) / TOTAL_SPAN * 2.2);
+
+            mCtx.fillStyle = '#ff5252';
+            molecules.forEach(m => {
+                m.x += m.vx * energy;
+                m.y += m.vy * energy;
+
+                // 碰壁反弹
+                if (m.x < 6 || m.x > mCanvas.width - 6) m.vx *= -1;
+                if (m.y < 6 || m.y > mCanvas.height - 6) m.vy *= -1;
+
+                mCtx.beginPath();
+                mCtx.arc(m.x, m.y, 4.5, 0, Math.PI * 2);
+                mCtx.fill();
+            });
+
+            requestAnimationFrame(renderMicroCosm);
+        }
+        renderMicroCosm();
+
+        /* ================= 6. 部件知识点解说弹窗 ================= */
+        const knowledgeBook = {
+            'unit': '【单位符号】：常用的温度单位是“摄氏度”，用符号“℃”表示。读温度时一定要带上单位！',
+            'scale': '【刻度】：均匀印在玻璃管两侧，用来标记温度数值。每一小格代表1℃，0刻度以上是零上，0刻度以下是零下。',
+            'liquid': '【液柱】：装在细玻璃管里的红色液体。温度升高它就向上升，温度降低它就向下降，它的顶端对齐刻度就是读数。',
+            'bulb': '【玻璃泡】：最下端的玻璃圆球，直接接触空气或被测物体，里面的液体感应温度产生热胀冷缩！'
+        };
+
+        const dialog = document.getElementById('knowledge-dialog');
+        let dialogTimer = null;
+
+        function showDialog(text, temp) {
+            // 隐藏答案模式下，把弹窗里出现的该温度数字一并遮盖为 ?℃，防止切场景/随机出题时泄题
+            if (answersHidden && typeof temp === 'number') {
+                const masked = String(temp) + '℃';
+                text = text.split(masked).join('?℃');
+            }
+            dialog.innerText = text;
+            dialog.classList.add('show');
+            clearTimeout(dialogTimer);
+            dialogTimer = setTimeout(() => {
+                dialog.classList.remove('show');
+            }, 3500);
+        }
+
+        function explainPart(type) {
+            playDing();
+            showDialog(knowledgeBook[type]);
+        }
+
+        /* ================= 7. 教师抽查：隐藏读数答案 ================= */
+        const readingMain = document.getElementById('readingMain');
+        const readingCover = document.getElementById('readingCover');
+        const btnHideAnswer = document.getElementById('btnHideAnswer');
+        let answersHidden = false;
+
+        // 首次使用前记录场景按钮的名称（隐藏时只遮盖温度数值，保留场景名便于教师点击）
+        function initSceneLabels() {
+            document.querySelectorAll('.scene-btn').forEach(b => {
+                if (!b.dataset.label) b.dataset.label = b.innerHTML.split('<br>')[0].trim();
+            });
+        }
+
+        function setAnswersHidden(hide) {
+            answersHidden = hide;
+            readingMain.hidden = hide;
+            readingCover.hidden = !hide;
+            btnHideAnswer.classList.toggle('active', hide);
+            btnHideAnswer.innerHTML = hide ? '👀 显示答案 (H)' : '🙈 隐藏答案 (H)';
+            // 场景按钮同步遮盖温度数值（保留按钮上"场景名"），避免学生看到预设答案
+            document.querySelectorAll('.scene-btn').forEach(b => {
+                b.innerHTML = `${b.dataset.label}<br>${hide ? '? ℃' : Number(b.dataset.temp) + '℃'}`;
+            });
+        }
+        function toggleAnswers() {
+            initSceneLabels();
+            setAnswersHidden(!answersHidden);
+        }
+
+        /* ================= 8. 示数放大镜 ================= */
+        const magPanel = document.getElementById('magPanel');
+        const btnMagnifier = document.getElementById('btnMagnifier');
+        const magCanvas = document.getElementById('magCanvas');
+        const magCtx = magCanvas.getContext('2d');
+
+        function toggleMagnifier() {
+            magOn = !magOn;
+            magPanel.classList.toggle('on', magOn);
+            btnMagnifier.classList.toggle('active', magOn);
+            btnMagnifier.innerHTML = magOn ? '🔍 关闭放大镜 (L)' : '🔍 示数放大镜 (L)';
+            if (magOn) {
+                applyMagPos();           // 恢复上次拖动位置
+                drawMagnifier();
+            }
+        }
+
+        // ===== 放大镜拖动（手柄在 panel 顶部，其余区域仍透传到温度计）=====
+        const magHandle = document.getElementById('magHandle');
+        let magPos = null;                 // 记忆的拖动位置 {x, y}
+        let magDragging = false;
+        const magDragOffset = { x: 0, y: 0 };
+        function applyMagPos() {
+            if (magPos) {
+                magPanel.style.left = magPos.x + 'px';
+                magPanel.style.top = magPos.y + 'px';
+                magPanel.style.transform = 'none';
+            } else {
+                // 用 CSS 默认 left:14; top:50%; transform:translateY(-50%)
+                magPanel.style.left = '';
+                magPanel.style.top = '';
+                magPanel.style.transform = '';
+            }
+        }
+        function startMagDrag(e) {
+            if (!magOn) return;
+            magDragging = true;
+            const pt = e.touches ? e.touches[0] : e;
+            const r = magPanel.getBoundingClientRect();
+            magDragOffset.x = pt.clientX - r.left;
+            magDragOffset.y = pt.clientY - r.top;
+            e.preventDefault();
+        }
+        function moveMagDrag(e) {
+            if (!magDragging) return;
+            const pt = e.touches ? e.touches[0] : e;
+            magPos = {
+                x: pt.clientX - magDragOffset.x,
+                y: pt.clientY - magDragOffset.y
+            };
+            applyMagPos();
+            e.preventDefault();
+        }
+        function endMagDrag() { magDragging = false; }
+        magHandle.addEventListener('mousedown', startMagDrag);
+        magHandle.addEventListener('touchstart', startMagDrag, { passive: false });
+        window.addEventListener('mousemove', moveMagDrag);
+        window.addEventListener('touchmove', moveMagDrag, { passive: false });
+        window.addEventListener('mouseup', endMagDrag);
+        window.addEventListener('touchend', endMagDrag);
+
+        // 放大镜：以液面为中心，放大绘制液面上下 6℃ 内的刻度与液柱（真实放大 ≈3×，与主温度计共用同一温度数据）
+        function drawMagnifier() {
+            const W = magCanvas.width, H = magCanvas.height;
+            const padTop = 34, padBot = 26;
+            const innerH = H - padTop - padBot;
+            const cx = W / 2, tubeW = 26;
+            const HALF = 6;                       // 液面上下各显示 6℃
+            // 暴露绘图参数供回归测试使用（避免测试端常量漂移）
+            window.MAG_CFG = { padTop, padBot, half: HALF, tubeW, canvasW: W, canvasH: H };
+            const tTop = Math.min(MAX_TEMP, currentTemp + HALF);
+            const tBot = Math.max(MIN_TEMP, currentTemp - HALF);
+            const yOf = t => padTop + (tTop - t) / Math.max(0.1, tTop - tBot) * innerH;
+
+            magCtx.clearRect(0, 0, W, H);
+
+            // 玻璃细管背景与管壁
+            magCtx.fillStyle = '#eef4f8';
+            magCtx.fillRect(cx - tubeW / 2, padTop - 4, tubeW, innerH + 8);
+            magCtx.strokeStyle = '#90a4ae';
+            magCtx.lineWidth = 1.5;
+            magCtx.beginPath();
+            magCtx.moveTo(cx - tubeW / 2, padTop - 4);
+            magCtx.lineTo(cx - tubeW / 2, padTop + innerH + 4);
+            magCtx.moveTo(cx + tubeW / 2, padTop - 4);
+            magCtx.lineTo(cx + tubeW / 2, padTop + innerH + 4);
+            magCtx.stroke();
+
+            // 逐 ℃ 刻度（仅画量程内）：10℃ 大刻度带数字，5℃ 中刻度，1℃ 小刻度
+            magCtx.lineWidth = 1.2;
+            magCtx.textBaseline = 'middle';
+            for (let t = Math.ceil(tBot); t <= Math.floor(tTop); t++) {
+                if (t < MIN_TEMP || t > MAX_TEMP) continue;
+                const yy = Math.round(yOf(t));
+                if (yy < padTop - 4 || yy > padTop + innerH + 4) continue;
+                const is0 = t === 0;
+                const major = t % 10 === 0;
+                const mid = t % 5 === 0;
+                const col = is0 ? '#d32f2f' : '#455a64';
+                const len = major ? 19 : (mid ? 13 : 9);
+                magCtx.strokeStyle = col;
+                magCtx.beginPath();
+                magCtx.moveTo(cx - tubeW / 2, yy);
+                magCtx.lineTo(cx - tubeW / 2 - len, yy);
+                magCtx.moveTo(cx + tubeW / 2, yy);
+                magCtx.lineTo(cx + tubeW / 2 + len, yy);
+                magCtx.stroke();
+                if (major) {
+                    const lbl = String(t);
+                    magCtx.fillStyle = col;
+                    magCtx.font = 'bold 14px "Microsoft YaHei", sans-serif';
+                    magCtx.textAlign = 'right';
+                    magCtx.fillText(lbl, cx - tubeW / 2 - len - 4, yy);
+                    magCtx.textAlign = 'left';
+                    magCtx.fillText(lbl, cx + tubeW / 2 + len + 4, yy);
+                }
+            }
+
+            // 红色液柱：自窗口底部填至当前液面
+            const yLiq = Math.min(H - padBot, Math.max(padTop, yOf(currentTemp)));
+            magCtx.fillStyle = 'rgba(255, 70, 70, 0.92)';
+            magCtx.fillRect(cx - tubeW / 2 + 2, yLiq, tubeW - 4, (H - padBot) - yLiq + 1);
+            // 液面（弯月面）高亮参考线：加粗横贯管身 + 两侧红色三角箭头，更易辨认
+            magCtx.strokeStyle = '#ff1744';
+            magCtx.lineWidth = 5;
+            magCtx.lineCap = 'round';
+            magCtx.beginPath();
+            magCtx.moveTo(cx - tubeW / 2 - 2, yLiq + 0.5);
+            magCtx.lineTo(cx + tubeW / 2 + 2, yLiq + 0.5);
+            magCtx.stroke();
+            // 两侧红色三角箭头（管外指向液面）
+            magCtx.fillStyle = '#d32f2f';
+            magCtx.strokeStyle = '#d32f2f';
+            magCtx.lineWidth = 1;
+            // 左侧三角：底边在管左 14px，顶点指右(对准液面)
+            magCtx.beginPath();
+            magCtx.moveTo(cx - tubeW / 2 - 14, yLiq - 5);
+            magCtx.lineTo(cx - tubeW / 2 - 14, yLiq + 5);
+            magCtx.lineTo(cx - tubeW / 2 - 4, yLiq + 0.5);
+            magCtx.closePath();
+            magCtx.fill();
+            // 右侧三角：底边在管右 14px，顶点指左
+            magCtx.beginPath();
+            magCtx.moveTo(cx + tubeW / 2 + 14, yLiq - 5);
+            magCtx.lineTo(cx + tubeW / 2 + 14, yLiq + 5);
+            magCtx.lineTo(cx + tubeW / 2 + 4, yLiq + 0.5);
+            magCtx.closePath();
+            magCtx.fill();
+        }
+
+        /* ================= 9. 随机出题模式 ================= */
+        function randomQuiz() {
+            // 先收集场景按钮原始文案，便于隐藏时正确遮盖
+            initSceneLabels();
+            // 随机整数 -20~40℃：避开量程端点（-30/50 放大镜半窗观感差），同时给出丰富的零上/零下混合
+            const lo = -20, hi = 40;
+            const t = Math.floor(Math.random() * (hi - lo + 1)) + lo;
+            updateTemperature(t, false);   // 不播音效
+            clearSceneActive();            // 随机温度无对应场景按钮
+            setAnswersHidden(true);        // 立即进入隐藏答案
+            showDialog(`已随机出题 (${t}℃)，请同学们读数！`, t);
+        }
+
+        // 教师常用快捷键：H = 隐藏/显示答案，L = 开关放大镜，R = 随机出题
+        window.addEventListener('keydown', (e) => {
+            const k = (e.key || '').toLowerCase();
+            if (k === 'h') {
+                initSceneLabels();
+                setAnswersHidden(!answersHidden);
+            } else if (k === 'l') {
+                toggleMagnifier();
+            } else if (k === 'r') {
+                randomQuiz();
+            }
+        });
+    </script>
+</body>
+</html>

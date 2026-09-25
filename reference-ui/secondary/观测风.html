@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>观测风：风向与风力模拟 · 小学科学</title>
+<style>
+    *{margin:0;padding:0;box-sizing:border-box;user-select:none;-webkit-user-select:none}
+    html,body{width:100%;height:100%;overflow:hidden;background:#060d1f;color:#eaf6ff;
+        font-family:'PingFang SC','Microsoft YaHei','Segoe UI',sans-serif}
+    body{display:flex;flex-direction:column}
+
+    /* ============ 顶部标题栏 ============ */
+    header{flex:0 0 auto;height:64px;display:flex;align-items:center;justify-content:space-between;
+        gap:14px;padding:0 20px;background:linear-gradient(180deg,rgba(12,30,60,.96),rgba(8,20,42,.92));
+        border-bottom:1px solid rgba(0,240,255,.25);z-index:30}
+    .brand{font-size:23px;font-weight:900;color:#00f0ff;text-shadow:0 0 12px rgba(0,240,255,.55);white-space:nowrap;flex:0 0 auto}
+    .principle{font-size:15px;font-weight:700;color:#8ef2c8;background:rgba(0,255,180,.08);
+        border:1px dashed rgba(0,255,180,.45);padding:7px 16px;border-radius:20px;white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis}
+    .credit{font-size:16px;font-weight:800;color:#ffb547;background:linear-gradient(135deg,rgba(255,183,71,.18),rgba(255,140,0,.12));
+        border:1px solid rgba(255,183,71,.6);padding:7px 16px;border-radius:20px;white-space:nowrap;flex:0 0 auto;
+        box-shadow:0 0 14px rgba(255,160,0,.18)}
+
+    main{flex:1;display:flex;min-height:0}
+
+    /* ============ 左侧演示台 ============ */
+    #stage{flex:1;position:relative;min-width:0;background:radial-gradient(circle at 50% 45%,#0d1b3d 0%,#04070f 100%)}
+    #canvas{position:absolute;left:0;top:0;display:block;cursor:grab}
+
+    /* 放大镜 */
+    #magPanel{position:absolute;left:16px;top:16px;width:198px;background:rgba(8,22,44,.95);
+        border:2px solid rgba(0,240,255,.55);border-radius:16px;box-shadow:0 10px 28px rgba(0,0,0,.6);
+        padding:8px 8px 10px;display:none;z-index:16}
+    #magPanel.on{display:block}
+    .mag-handle{display:flex;align-items:center;justify-content:center;gap:6px;cursor:move;
+        padding:2px 4px 6px;border-bottom:1px dashed rgba(0,240,255,.3);font-size:14px;font-weight:800;color:#00f0ff}
+    .mag-grip{font-size:12px;color:#8fb4d6;letter-spacing:-2px}
+    #magCanvas{display:block;margin-top:6px;border-radius:10px;background:rgba(4,12,26,.92)}
+    .mag-note{font-size:12px;color:#8fb4d6;text-align:center;margin-top:6px;line-height:1.4}
+
+    /* ============ 右侧面板 ============ */
+    #panel{flex:0 0 404px;overflow-y:auto;padding:14px 14px 26px;display:flex;flex-direction:column;gap:12px;
+        background:linear-gradient(180deg,rgba(8,20,42,.97),rgba(5,12,26,.99));border-left:1px solid rgba(0,240,255,.2)}
+    #panel::-webkit-scrollbar{width:8px}
+    #panel::-webkit-scrollbar-thumb{background:rgba(0,240,255,.25);border-radius:4px}
+    .card{background:rgba(12,28,56,.7);border:1px solid rgba(0,240,255,.22);border-radius:14px;padding:12px 14px}
+    .card-title{font-size:16px;font-weight:900;color:#00f0ff;margin-bottom:10px;
+        display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+
+    /* 读数卡 */
+    .ro-line{display:flex;align-items:baseline;gap:10px;margin-bottom:4px}
+    .ro-k{font-size:15px;color:#9fc3e2;font-weight:700;flex:0 0 44px}
+    .ro-v{font-size:36px;font-weight:900;color:#fff;text-shadow:0 0 16px rgba(0,240,255,.45);line-height:1.12}
+    .ro-sub{font-size:14px;color:#8fb4d6;margin-top:4px;line-height:1.5}
+    .mask-tip{text-align:center;font-size:20px;font-weight:900;color:#ffd700;padding:12px 6px;line-height:1.6}
+    .mask-tip span{font-size:13px;color:#9fc3e2;font-weight:600}
+
+    /* 通用按钮 */
+    .big-btn{width:100%;padding:12px 0;font-size:17px;font-weight:900;color:#04202b;
+        background:linear-gradient(135deg,#00f0ff,#38bdf8);border:none;border-radius:10px;cursor:pointer;
+        box-shadow:0 4px 14px rgba(0,240,255,.3);margin-top:12px}
+    .big-btn:active{transform:scale(.98)}
+
+    /* 作答区 */
+    .q-label{font-size:15px;font-weight:800;color:#cfe6ff;margin:12px 0 6px}
+    .q-grid{display:grid;gap:6px;grid-template-columns:repeat(4,1fr)}
+    .q-btn{padding:10px 0;font-size:15px;font-weight:800;color:#dff3ff;background:rgba(5,15,35,.7);
+        border:1px solid rgba(0,240,255,.32);border-radius:8px;cursor:pointer}
+    .q-btn.sel{background:linear-gradient(135deg,#00f0ff,#0072ff);color:#00131f;border-color:#00f0ff}
+    .q-btn.right{background:linear-gradient(135deg,#22c55e,#15803d);color:#fff;border-color:#22c55e}
+    .q-btn.wrong{background:linear-gradient(135deg,#ef4444,#991b1b);color:#fff;border-color:#ef4444}
+    .q-feedback{margin-top:10px;font-size:14.5px;line-height:1.7;padding:10px 12px;border-radius:10px;
+        background:rgba(0,240,255,.08);border:1px dashed rgba(0,240,255,.4)}
+    .q-feedback b{color:#ffd700}
+
+    /* 蒲福表 */
+    table.beaufort{width:100%;border-collapse:collapse;font-size:13.5px}
+    table.beaufort th,table.beaufort td{padding:5px 6px;text-align:left;
+        border-bottom:1px solid rgba(0,240,255,.12);color:#cfe6ff}
+    table.beaufort th{color:#00f0ff;font-size:13px;font-weight:800}
+    table.beaufort td.lv{color:#ffd700;font-weight:900;white-space:nowrap}
+    table.beaufort tr.cur{background:rgba(0,240,255,.14)}
+
+    /* 风级按钮 */
+    .lv-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+    .lv-btn{padding:10px 0;font-size:14px;font-weight:800;color:#dff3ff;background:rgba(5,15,35,.7);
+        border:1px solid rgba(0,240,255,.3);border-radius:8px;cursor:pointer}
+    .lv-btn.active{background:linear-gradient(135deg,#00f0ff,#0072ff);color:#00131f;border-color:#00f0ff;
+        box-shadow:0 0 10px rgba(0,240,255,.5)}
+    .hint{font-size:13px;color:#8fb4d6;margin-top:9px;line-height:1.55}
+
+    /* 教师工具 */
+    .tool-row{display:flex;gap:8px;margin-bottom:8px}
+    .tool-row:last-child{margin-bottom:0}
+    .tool-btn{flex:1;padding:10px 0;font-size:14.5px;font-weight:800;color:#00f0ff;background:rgba(0,240,255,.14);
+        border:1px solid rgba(0,240,255,.5);border-radius:9px;cursor:pointer;white-space:nowrap}
+    .tool-btn:hover{background:rgba(0,240,255,.26)}
+    .tool-btn.active{background:linear-gradient(135deg,#ff007a,#9900ee);border-color:#ff007a;color:#fff}
+    .tool-btn.hot{background:linear-gradient(135deg,#ff007a,#9900ee);border-color:#ff007a;color:#fff}
+
+    /* 记录 */
+    .mini-btn{font-size:12.5px;font-weight:800;color:#00f0ff;background:rgba(0,240,255,.14);
+        border:1px solid rgba(0,240,255,.45);border-radius:8px;padding:4px 10px;cursor:pointer}
+    .records{display:flex;flex-direction:column;gap:6px;font-size:14px}
+    .rec-item{display:flex;justify-content:space-between;gap:8px;padding:6px 10px;border-radius:8px;
+        background:rgba(0,240,255,.08);border:1px solid rgba(0,240,255,.2)}
+    .rec-item b{color:#ffd700}
+    .rec-empty{color:#7c98b6;font-size:13.5px;line-height:1.5}
+
+    /* 启动遮罩 */
+    #intro{position:fixed;inset:0;background:rgba(2,6,14,.92);display:flex;flex-direction:column;
+        align-items:center;justify-content:center;gap:14px;z-index:100;cursor:pointer;backdrop-filter:blur(6px)}
+    #intro h1{font-size:34px;color:#00f0ff;text-shadow:0 0 24px rgba(0,240,255,.6)}
+    #intro p{font-size:16px;color:#cfe6ff;opacity:.9}
+    #intro .intro-credit{font-size:16px;font-weight:800;color:#ffb547}
+</style>
+</head>
+<body>
+
+<header>
+    <div class="brand">🌬️ 小学科学：观测风</div>
+    <div class="principle">▲ 风向是风吹来的方向；用风向标、风旗观测风向，用蒲福风力等级判断风力</div>
+    <div class="credit">👩‍🏫 课件制作：小胡老师</div>
+</header>
+
+<main>
+    <!-- 左侧：模拟演示台 -->
+    <div id="stage">
+        <canvas id="canvas"></canvas>
+
+        <!-- 示数放大镜 -->
+        <div id="magPanel">
+            <div class="mag-handle" id="magHandle" title="按住拖动放大镜">
+                <span class="mag-grip">⋮⋮</span>
+                <span>🔍 放大镜</span>
+            </div>
+            <canvas id="magCanvas" width="180" height="196"></canvas>
+            <div class="mag-note">放大风向标与方位，<br>看清箭头指向哪个方向</div>
+        </div>
+    </div>
+
+    <!-- 右侧：读数与训练 -->
+    <aside id="panel">
+        <!-- 读数卡 -->
+        <section class="card">
+            <div class="card-title">📊 观测读数</div>
+            <div id="readoutMain">
+                <div class="ro-line"><span class="ro-k">风向</span><span class="ro-v" id="roDir">北风</span></div>
+                <div class="ro-line"><span class="ro-k">风力</span><span class="ro-v" id="roLevel">2级 轻风</span></div>
+                <div class="ro-sub" id="roDetail">风从北方吹来 · 旗帜飘向南方</div>
+            </div>
+            <div id="readoutMask" class="mask-tip" hidden>🙈 答案已隐藏<br>
+                <span>请观察风旗、风向标和落叶，判断风向与风力</span></div>
+        </section>
+
+        <!-- 作答区（随机出题时出现） -->
+        <section class="card" id="quizPanel" hidden>
+            <div class="card-title">✍️ 请作答</div>
+            <div class="q-label">1. 现在的风向是？（吹来的方向）</div>
+            <div class="q-grid" id="quizDirs"></div>
+            <div class="q-label">2. 现在的风力是几级？</div>
+            <div class="q-grid" id="quizLevels"></div>
+            <button class="big-btn" id="btnSubmit">提交作答</button>
+            <div class="q-feedback" id="quizFeedback" hidden></div>
+        </section>
+
+        <!-- 蒲福风力等级表 -->
+        <section class="card">
+            <div class="card-title">📖 蒲福风力等级表（陆地征象）</div>
+            <table class="beaufort">
+                <thead><tr><th>风级</th><th>名称</th><th>陆地上的现象</th></tr></thead>
+                <tbody id="beaufortBody"></tbody>
+            </table>
+        </section>
+
+        <!-- 自由探索：风力调节 -->
+        <section class="card" id="controlPanel">
+            <div class="card-title">🎛 风力调节（蒲福风级）</div>
+            <div class="lv-grid" id="levelBtns"></div>
+            <div class="hint" id="exploreHint">👉 拖动圆盘上的<b>风扇</b>改变风向（会吸附到八个方位）；点击上方数字改变风力。</div>
+        </section>
+
+        <!-- 教师工具 -->
+        <section class="card">
+            <div class="card-title">🧑‍🏫 教师工具</div>
+            <div class="tool-row">
+                <button class="tool-btn" id="btnHide" title="快捷键 H">🙈 隐藏答案 (H)</button>
+                <button class="tool-btn" id="btnMag" title="快捷键 L">🔍 放大镜 (L)</button>
+            </div>
+            <div class="tool-row">
+                <button class="tool-btn hot" id="btnQuiz" title="快捷键 R">🎲 随机出题 (R)</button>
+                <button class="tool-btn" id="btnExitQuiz" hidden>↩️ 退出出题</button>
+            </div>
+            <div class="tool-row">
+                <button class="tool-btn" id="btnReset">♻️ 重置</button>
+                <button class="tool-btn" id="btnMute">🔊 声音开</button>
+            </div>
+        </section>
+
+        <!-- 天气日历记录 -->
+        <section class="card">
+            <div class="card-title">📝 天气日历记录
+                <span>
+                    <button class="mini-btn" id="btnRecord">记录本次</button>
+                    <button class="mini-btn" id="btnClearRecords">清空</button>
+                </span>
+            </div>
+            <div class="records" id="records"></div>
+        </section>
+    </aside>
+</main>
+
+<!-- 启动遮罩（音效需用户手势） -->
+<div id="intro">
+    <h1>🌬️ 观测风</h1>
+    <p>点击任意位置进入实验并开启风声</p>
+    <div class="intro-credit">👩‍🏫 课件制作：小胡老师</div>
+</div>
+
+<script>
+/* =====================================================================
+   观测风 · 风向与风力模拟平台
+   科学依据（教科版三年级上册《观测风》）：
+   - 风向是风吹来的方向，用八个方位描述（东、东南、南、西南、西、西北、北、东北）
+   - 风向标箭头指向风的来向；风旗飘向风的去向（与风向相反）
+   - 风力用蒲福风力等级表示（0级无风 ~ 6级强风），按陆地现象判断
+   ===================================================================== */
+
+/* ---------------- DOM ---------------- */
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const stage = document.getElementById('stage');
+const magPanel = document.getElementById('magPanel');
+const magHandle = document.getElementById('magHandle');
+const magCanvas = document.getElementById('magCanvas');
+const magCtx = magCanvas.getContext('2d');
+
+/* ---------------- 常量 ---------------- */
+// 屏幕坐标：0 = 东(右)，PI/2 = 南(下)，PI = 西(左)，-PI/2 = 北(上)
+const DIRECTIONS = [
+    { name: '东',   angle: 0 },
+    { name: '东南', angle: Math.PI / 4 },
+    { name: '南',   angle: Math.PI / 2 },
+    { name: '西南', angle: 3 * Math.PI / 4 },
+    { name: '西',   angle: Math.PI },
+    { name: '西北', angle: -3 * Math.PI / 4 },
+    { name: '北',   angle: -Math.PI / 2 },
+    { name: '东北', angle: -Math.PI / 4 }
+];
+// 蒲福风力等级（陆地征象，教材 0~6 级）
+// flag/leaf/tree = 现象强度；vane = 风向标是否转动（1级及以下不动）；spin = 风扇转速
+const BEAUFORT = [
+    { level: 0, name: '无风', sign: '烟直上，树叶不动',                    flag: 0,    leaf: 0,    tree: 0,    vane: false, spin: 0 },
+    { level: 1, name: '软风', sign: '烟能表示风向，但风向标不动',          flag: 0.12, leaf: 0.06, tree: 0.04, vane: false, spin: 0.25 },
+    { level: 2, name: '轻风', sign: '人面感觉有风，树叶微响，风向标转动',  flag: 0.32, leaf: 0.28, tree: 0.16, vane: true,  spin: 0.6 },
+    { level: 3, name: '微风', sign: '树叶和微枝摇动不息，旗帜展开',        flag: 0.55, leaf: 0.5,  tree: 0.34, vane: true,  spin: 1.0 },
+    { level: 4, name: '和风', sign: '能吹起地面灰尘和纸张，小树枝摇动',    flag: 0.75, leaf: 0.78, tree: 0.58, vane: true,  spin: 1.5 },
+    { level: 5, name: '清风', sign: '有叶的小树摇摆，内陆水面有小波',      flag: 0.95, leaf: 1.0,  tree: 0.85, vane: true,  spin: 2.0 },
+    { level: 6, name: '强风', sign: '大树枝摇动，电线呼呼有声，举伞困难',  flag: 1.15, leaf: 1.3,  tree: 1.12, vane: true,  spin: 2.6 }
+];
+
+/* ---------------- 状态 ---------------- */
+let W = 0, H = 0, cx = 0, cy = 0, R = 0, dpr = 1;
+let windTarget = -Math.PI / 2;   // 风的来向（目标角度）
+let windShown = -Math.PI / 2;    // 平滑显示角度
+let vaneShown = -Math.PI / 2;    // 风向标角度（1级及以下不跟随）
+let beaufort = 2;                // 当前蒲福风级
+let mode = 'explore';            // explore（自由探索） | quiz（随机出题）
+let answerVisible = true;        // 答案是否可见
+let dragging = false;            // 是否正在拖风扇
+let muted = false;
+let waveOffset = 0, timeAcc = 0;
+let fanSpin = 0;
+let quiz = { selDir: null, selLevel: null, answered: false };
+let records = [];
+let magOn = false, magDragging = false, magPos = null;
+const magOffset = { x: 0, y: 0 };
+
+/* ---------------- 工具函数 ---------------- */
+function normAngle(a) { return Math.atan2(Math.sin(a), Math.cos(a)); }
+function stepAngle(cur, target, k) { return cur + normAngle(target - cur) * k; }
+function nearestDirIndex(angle) {
+    const n = normAngle(angle);
+    let best = 0, bd = Infinity;
+    DIRECTIONS.forEach((d, i) => {
+        const df = Math.abs(normAngle(n - d.angle));
+        if (df < bd) { bd = df; best = i; }
+    });
+    return best;
+}
+function oppositeIndex(i) { return (i + 4) % 8; }   // 8 方位数组顺序决定了相反方位为 +4
+function bf() { return BEAUFORT[beaufort]; }
+function fanPos() {
+    return { x: cx + Math.cos(windShown) * R, y: cy + Math.sin(windShown) * R };
+}
+
+/* ---------------- 音频（风声 + 点击音） ---------------- */
+let audioCtx = null, windGain = null, windFilter = null, noiseNode = null;
+function initAudio() {
+    if (audioCtx) return;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    audioCtx = new AC();
+    const len = audioCtx.sampleRate * 2;
+    const buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+    noiseNode = audioCtx.createBufferSource();
+    noiseNode.buffer = buf;
+    noiseNode.loop = true;
+    windFilter = audioCtx.createBiquadFilter();
+    windFilter.type = 'lowpass';
+    windFilter.frequency.value = 350;
+    windGain = audioCtx.createGain();
+    windGain.gain.value = 0;
+    noiseNode.connect(windFilter);
+    windFilter.connect(windGain);
+    windGain.connect(audioCtx.destination);
+    noiseNode.start(0);
+    applyAudio();
+}
+function applyAudio() {
+    if (!audioCtx || !windGain) return;
+    const t = audioCtx.currentTime;
+    if (muted || beaufort === 0) { windGain.gain.setTargetAtTime(0, t, 0.08); return; }
+    const g = [0, 0.06, 0.12, 0.2, 0.3, 0.42, 0.55][beaufort] || 0;
+    const f = [0, 350, 520, 780, 1050, 1350, 1700][beaufort] || 350;
+    windGain.gain.setTargetAtTime(g, t, 0.15);
+    windFilter.frequency.setTargetAtTime(f, t, 0.15);
+}
+function playClick() {
+    if (!audioCtx || muted) return;
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    o.type = 'sine';
+    o.frequency.setValueAtTime(880, audioCtx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(1320, audioCtx.currentTime + 0.08);
+    g.gain.setValueAtTime(0.07, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.09);
+    o.start(); o.stop(audioCtx.currentTime + 0.1);
+}
+function startApp() {
+    initAudio();
+    const intro = document.getElementById('intro');
+    intro.style.display = 'none';
+    intro.style.pointerEvents = 'none';
+    playClick();
+}
+
+/* ---------------- 画布尺寸（含高分屏适配） ---------------- */
+function resize() {
+    const r = stage.getBoundingClientRect();
+    dpr = window.devicePixelRatio || 1;
+    W = Math.max(320, Math.round(r.width));
+    H = Math.max(320, Math.round(r.height));
+    canvas.width = Math.round(W * dpr);
+    canvas.height = Math.round(H * dpr);
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    cx = W / 2;
+    cy = H / 2;
+    R = Math.min(W, H) * 0.36;
+}
+window.addEventListener('resize', resize);
+
+/* ---------------- 粒子：风线 / 落叶 ---------------- */
+const windLines = [];
+const leaves = [];
+
+function WindLine() { this.reset(true); }
+WindLine.prototype.reset = function (spreadAll) {
+    const p = fanPos();
+    const perp = windShown + Math.PI / 2;
+    if (spreadAll) {
+        this.x = cx + (Math.random() - 0.5) * R * 1.5;
+        this.y = cy + (Math.random() - 0.5) * R * 1.5;
+    } else {
+        const spread = (Math.random() - 0.5) * 100;
+        this.x = p.x + Math.cos(perp) * spread;
+        this.y = p.y + Math.sin(perp) * spread;
+    }
+    this.len = 18 + Math.random() * 36;
+    this.life = 1;
+    this.decay = 0.012 + Math.random() * 0.02;
+};
+WindLine.prototype.update = function () {
+    const blow = windShown + Math.PI;
+    const speed = 2 + beaufort * 2.4 + Math.random() * 2;
+    this.x += Math.cos(blow) * speed;
+    this.y += Math.sin(blow) * speed;
+    this.life -= this.decay;
+    if (this.life <= 0 || Math.hypot(this.x - cx, this.y - cy) > R * 1.5) this.reset(true);
+};
+WindLine.prototype.draw = function () {
+    const blow = windShown + Math.PI;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(0,240,255,' + (this.life * 0.5) + ')';
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.moveTo(this.x, this.y);
+    ctx.lineTo(this.x - Math.cos(blow) * this.len, this.y - Math.sin(blow) * this.len);
+    ctx.stroke();
+    ctx.restore();
+};
+
+function Leaf() { this.init(true); }
+Leaf.prototype.init = function (randomArea) {
+    const p = fanPos();
+    const perp = windShown + Math.PI / 2;
+    if (randomArea) {
+        const r = Math.random() * R * 0.8;
+        const th = Math.random() * Math.PI * 2;
+        this.x = cx + Math.cos(th) * r;
+        this.y = cy + Math.sin(th) * r;
+    } else {
+        const spread = (Math.random() - 0.5) * 120;
+        this.x = p.x + Math.cos(perp) * spread;
+        this.y = p.y + Math.sin(perp) * spread;
+    }
+    this.size = 11 + Math.random() * 9;
+    this.angle = Math.random() * Math.PI * 2;
+    this.spin = 0;
+    this.color = ['#ffb347', '#ff8c42', '#d4e157', '#a1887f'][Math.floor(Math.random() * 4)];
+    this.vx = 0; this.vy = 0;
+};
+Leaf.prototype.update = function () {
+    const b = bf();
+    if (b.level === 0) { this.vx = 0; this.vy = 0; this.spin = 0; return; }
+    const blow = windShown + Math.PI;
+    const force = (1 + b.level * 1.5) * Math.max(0.25, b.leaf);
+    this.vx += Math.cos(blow) * force * 0.055 + (Math.random() - 0.5) * 0.22;
+    this.vy += Math.sin(blow) * force * 0.055 + (Math.random() - 0.5) * 0.22;
+    this.spin += (Math.random() - 0.5) * 0.03 * (1 + b.level * 0.6);
+    this.vx *= 0.95; this.vy *= 0.95;
+    this.x += this.vx; this.y += this.vy; this.angle += this.spin;
+    if (Math.hypot(this.x - cx, this.y - cy) > R * 1.2) this.init(false);
+};
+Leaf.prototype.draw = function () {
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.angle);
+    ctx.fillStyle = this.color;
+    ctx.beginPath();
+    ctx.moveTo(0, -this.size / 2);
+    ctx.quadraticCurveTo(this.size / 2, 0, 0, this.size / 2);
+    ctx.quadraticCurveTo(-this.size / 2, 0, 0, -this.size / 2);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,.25)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, -this.size / 2);
+    ctx.lineTo(0, this.size / 2);
+    ctx.stroke();
+    ctx.restore();
+};
+
+/* ---------------- 绘制：罗盘 ---------------- */
+function drawDial() {
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.beginPath(); ctx.arc(0, 0, R, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(10,24,52,.55)'; ctx.fill();
+    ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,240,255,.45)'; ctx.stroke();
+
+    ctx.beginPath(); ctx.arc(0, 0, R * 0.62, 0, Math.PI * 2);
+    ctx.setLineDash([7, 7]); ctx.strokeStyle = 'rgba(0,240,255,.16)'; ctx.lineWidth = 1.5;
+    ctx.stroke(); ctx.setLineDash([]);
+
+    for (let deg = 0; deg < 360; deg += 5) {
+        const rad = deg * Math.PI / 180;
+        const major = deg % 45 === 0, medium = deg % 15 === 0;
+        const len = major ? 18 : (medium ? 10 : 5);
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(rad) * (R - 3), Math.sin(rad) * (R - 3));
+        ctx.lineTo(Math.cos(rad) * (R - 3 - len), Math.sin(rad) * (R - 3 - len));
+        ctx.strokeStyle = major ? '#00f0ff' : (medium ? 'rgba(0,240,255,.45)' : 'rgba(0,240,255,.2)');
+        ctx.lineWidth = major ? 2.5 : 1;
+        ctx.stroke();
+    }
+
+    DIRECTIONS.forEach(d => {
+        const tr = R - 44;
+        const x = Math.cos(d.angle) * tr, y = Math.sin(d.angle) * tr;
+        const isMain = ['东', '南', '西', '北'].indexOf(d.name) >= 0;
+        ctx.font = 'bold ' + (isMain ? 21 : 17) + 'px "PingFang SC","Microsoft YaHei",sans-serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillStyle = isMain ? '#ffd700' : '#00f0ff';
+        ctx.shadowColor = ctx.fillStyle; ctx.shadowBlur = 10;
+        ctx.fillText(d.name, x, y);
+        ctx.shadowBlur = 0;
+    });
+    ctx.restore();
+}
+
+/* ---------------- 绘制：风旗（飘向 = 风去向） ---------------- */
+function drawFlag() {
+    const px = cx - 132, py = cy - 4;
+    const b = bf();
+    ctx.save();
+    ctx.translate(px, py);
+    ctx.fillStyle = '#4a6572';
+    ctx.beginPath(); ctx.arc(0, 0, 9, 0, Math.PI * 2); ctx.fill();
+    ctx.lineWidth = 4; ctx.strokeStyle = '#dbe7f3';
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -104); ctx.stroke();
+    ctx.fillStyle = '#ffd700';
+    ctx.beginPath(); ctx.arc(0, -104, 5, 0, Math.PI * 2); ctx.fill();
+
+    ctx.translate(0, -102);
+    if (b.level === 0) {
+        ctx.fillStyle = '#ff2d6f';
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.quadraticCurveTo(7, 16, 3, 34);
+        ctx.lineTo(-4, 34);
+        ctx.quadraticCurveTo(1, 16, 0, 0);
+        ctx.closePath(); ctx.fill();
+    } else {
+        ctx.rotate(windShown + Math.PI);
+        const len = 54 + b.flag * 36;
+        const hgt = 30;
+        const amp = 3 + b.flag * 8;
+        ctx.fillStyle = '#ff2d6f';
+        ctx.shadowColor = '#ff2d6f'; ctx.shadowBlur = 12;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        for (let x = 0; x <= len; x += 5) {
+            ctx.lineTo(x, Math.sin(x * 0.09 - waveOffset * 1.5) * amp * (x / len));
+        }
+        for (let x = len; x >= 0; x -= 5) {
+            ctx.lineTo(x, Math.sin(x * 0.09 - waveOffset * 1.5) * amp * (x / len) + hgt);
+        }
+        ctx.closePath(); ctx.fill();
+        ctx.shadowBlur = 0;
+    }
+    ctx.restore();
+
+    ctx.save();
+    ctx.font = 'bold 14px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.textAlign = 'center'; ctx.fillStyle = 'rgba(160,200,230,.85)';
+    ctx.fillText('风旗', px, py + 30);
+    ctx.restore();
+}
+
+/* ---------------- 绘制：风向标（箭头指向风的来向） ---------------- */
+function drawVane() {
+    const px = cx + 126, py = cy - 4;
+    const b = bf();
+    ctx.save();
+    ctx.translate(px, py);
+    ctx.fillStyle = '#4a6572';
+    ctx.beginPath(); ctx.arc(0, 0, 9, 0, Math.PI * 2); ctx.fill();
+    ctx.lineWidth = 4; ctx.strokeStyle = '#dbe7f3';
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -108); ctx.stroke();
+
+    ctx.translate(0, -108);
+    ctx.save();
+    ctx.rotate(vaneShown);
+    const L = 48;
+    ctx.fillStyle = '#7dd3fc';
+    ctx.beginPath();
+    ctx.moveTo(-L, 0); ctx.lineTo(-L + 16, -13); ctx.lineTo(-L + 16, 13);
+    ctx.closePath(); ctx.fill();
+    ctx.lineWidth = 5; ctx.strokeStyle = '#00f0ff';
+    ctx.beginPath(); ctx.moveTo(-L + 8, 0); ctx.lineTo(L - 16, 0); ctx.stroke();
+    ctx.fillStyle = '#00f0ff';
+    ctx.shadowColor = '#00f0ff'; ctx.shadowBlur = 12;
+    ctx.beginPath();
+    ctx.moveTo(L, 0); ctx.lineTo(L - 20, -12); ctx.lineTo(L - 20, 12);
+    ctx.closePath(); ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.restore();
+
+    ctx.fillStyle = '#ffd700';
+    ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 14px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.fillStyle = 'rgba(160,200,230,.85)';
+    ctx.fillText('风向标', px, py + 30);
+    if (!b.vane) {
+        ctx.font = 'bold 12.5px "PingFang SC","Microsoft YaHei",sans-serif';
+        ctx.fillStyle = '#ffb547';
+        ctx.fillText('（' + b.level + '级时风向标不动）', px, py + 50);
+    }
+    ctx.restore();
+}
+
+/* ---------------- 绘制：小树（现象随风级） ---------------- */
+function drawTree() {
+    const px = cx, py = cy + 152;
+    const b = bf();
+    const sway = Math.sin(timeAcc * 2.2) * b.tree * 11;
+    ctx.save();
+    ctx.translate(px, py);
+    ctx.strokeStyle = '#8b5a2b';
+    ctx.lineWidth = 8; ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.quadraticCurveTo(sway * 0.5, -44, sway, -84);
+    ctx.stroke();
+    const gx = sway, gy = -84;
+    ctx.fillStyle = 'rgba(56,178,110,.92)';
+    ctx.shadowColor = 'rgba(60,200,120,.55)'; ctx.shadowBlur = 14;
+    [[0, -18, 26], [-22, -4, 20], [22, -4, 20], [0, 4, 22]].forEach(function (c) {
+        ctx.beginPath(); ctx.arc(gx + c[0], gy + c[1], c[2], 0, Math.PI * 2); ctx.fill();
+    });
+    ctx.shadowBlur = 0;
+    ctx.restore();
+
+    ctx.save();
+    ctx.font = 'bold 14px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(160,200,230,.85)';
+    ctx.fillText('小树', px, py + 26);
+    ctx.restore();
+}
+
+/* ---------------- 绘制：风扇（自由探索模式的风源） ---------------- */
+function drawFan() {
+    const p = fanPos();
+    const face = windShown + Math.PI;
+    const b = bf();
+    if (b.level > 0) fanSpin += b.spin * 0.12;
+
+    ctx.save();
+    ctx.translate(p.x, p.y);
+
+    ctx.beginPath(); ctx.arc(0, 0, 42, 0, Math.PI * 2);
+    ctx.strokeStyle = dragging ? 'rgba(255,215,0,.95)' : 'rgba(0,240,255,.42)';
+    ctx.lineWidth = dragging ? 3 : 2;
+    ctx.setLineDash([5, 5]); ctx.stroke(); ctx.setLineDash([]);
+
+    if (b.level > 0) {
+        ctx.save();
+        ctx.rotate(face);
+        const grd = ctx.createRadialGradient(0, 0, 8, 0, 0, 130);
+        grd.addColorStop(0, 'rgba(0,240,255,' + (0.1 + b.flag * 0.38) + ')');
+        grd.addColorStop(1, 'rgba(0,240,255,0)');
+        ctx.fillStyle = grd;
+        ctx.beginPath();
+        ctx.moveTo(14, -22); ctx.lineTo(135, -58); ctx.lineTo(135, 58); ctx.lineTo(14, 22);
+        ctx.closePath(); ctx.fill();
+        ctx.restore();
+    }
+
+    ctx.rotate(face);
+    ctx.beginPath(); ctx.arc(0, 0, 26, 0, Math.PI * 2);
+    ctx.fillStyle = '#0e2340'; ctx.fill();
+    ctx.strokeStyle = '#00f0ff'; ctx.lineWidth = 3; ctx.stroke();
+
+    ctx.save();
+    ctx.rotate(fanSpin);
+    for (let i = 0; i < 3; i++) {
+        ctx.rotate(Math.PI * 2 / 3);
+        ctx.beginPath();
+        ctx.ellipse(0, 11, 5.5, 12, 0, 0, Math.PI * 2);
+        ctx.fillStyle = '#00f0ff'; ctx.fill();
+    }
+    ctx.restore();
+
+    ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffd700'; ctx.fill();
+    ctx.restore();
+
+    ctx.save();
+    ctx.font = 'bold 13px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(160,200,230,.8)';
+    ctx.fillText('风源·可拖动', p.x, p.y - 54);
+    ctx.restore();
+}
+
+/* ---------------- 放大镜绘制（放大风向标 + 方位） ---------------- */
+function drawMag() {
+    const w = magCanvas.width, h = magCanvas.height;
+    const ox = w / 2, oy = h / 2 + 4;
+    const rr = 70;
+    magCtx.clearRect(0, 0, w, h);
+
+    magCtx.beginPath(); magCtx.arc(ox, oy, rr, 0, Math.PI * 2);
+    magCtx.fillStyle = 'rgba(8,22,44,.9)'; magCtx.fill();
+    magCtx.strokeStyle = 'rgba(0,240,255,.55)'; magCtx.lineWidth = 2; magCtx.stroke();
+
+    for (let deg = 0; deg < 360; deg += 15) {
+        const rad = deg * Math.PI / 180;
+        const major = deg % 45 === 0;
+        const len = major ? 10 : 5;
+        magCtx.beginPath();
+        magCtx.moveTo(ox + Math.cos(rad) * (rr - 2), oy + Math.sin(rad) * (rr - 2));
+        magCtx.lineTo(ox + Math.cos(rad) * (rr - 2 - len), oy + Math.sin(rad) * (rr - 2 - len));
+        magCtx.strokeStyle = major ? '#00f0ff' : 'rgba(0,240,255,.35)';
+        magCtx.lineWidth = major ? 2 : 1;
+        magCtx.stroke();
+    }
+
+    DIRECTIONS.forEach(function (d) {
+        const x = ox + Math.cos(d.angle) * (rr - 20), y = oy + Math.sin(d.angle) * (rr - 20);
+        const isMain = ['东', '南', '西', '北'].indexOf(d.name) >= 0;
+        magCtx.font = 'bold ' + (isMain ? 16 : 13.5) + 'px "PingFang SC","Microsoft YaHei",sans-serif';
+        magCtx.textAlign = 'center'; magCtx.textBaseline = 'middle';
+        magCtx.fillStyle = isMain ? '#ffd700' : '#00f0ff';
+        magCtx.fillText(d.name, x, y);
+    });
+
+    magCtx.save();
+    magCtx.translate(ox, oy);
+    magCtx.rotate(vaneShown);
+    // 指向延长线：让箭头与方位名连成一线，便于判断指向
+    magCtx.strokeStyle = 'rgba(0,240,255,.45)';
+    magCtx.lineWidth = 2;
+    magCtx.beginPath(); magCtx.moveTo(30, 0); magCtx.lineTo(rr - 22, 0); magCtx.stroke();
+    // 箭头（指向风的来向）
+    magCtx.strokeStyle = '#00f0ff'; magCtx.lineWidth = 6; magCtx.lineCap = 'round';
+    magCtx.beginPath(); magCtx.moveTo(-8, 0); magCtx.lineTo(24, 0); magCtx.stroke();
+    magCtx.fillStyle = '#00f0ff';
+    magCtx.shadowColor = '#00f0ff'; magCtx.shadowBlur = 10;
+    magCtx.beginPath();
+    magCtx.moveTo(42, 0); magCtx.lineTo(22, -11); magCtx.lineTo(22, 11);
+    magCtx.closePath(); magCtx.fill();
+    magCtx.shadowBlur = 0;
+    magCtx.beginPath(); magCtx.arc(0, 0, 5, 0, Math.PI * 2);
+    magCtx.fillStyle = '#ffd700'; magCtx.fill();
+    magCtx.restore();
+}
+
+/* ---------------- 主循环 ---------------- */
+function animate() {
+    windShown = stepAngle(windShown, windTarget, 0.18);
+    const b = bf();
+    if (b.vane) vaneShown = stepAngle(vaneShown, windShown, 0.15);
+    if (b.level > 0) waveOffset += 0.05 + b.flag * 0.14;
+    timeAcc += 0.016;
+
+    ctx.clearRect(0, 0, W, H);
+    drawDial();
+
+    if (b.level > 0) {
+        for (let i = 0; i < windLines.length; i++) { windLines[i].update(); windLines[i].draw(); }
+    }
+    for (let i = 0; i < leaves.length; i++) { leaves[i].update(); leaves[i].draw(); }
+
+    drawTree();
+    drawFlag();
+    drawVane();
+    if (mode === 'explore') drawFan();
+    if (magOn) drawMag();
+
+    requestAnimationFrame(animate);
+}
+
+/* ---------------- 读数与 UI 更新 ---------------- */
+function updateReadout() {
+    const di = nearestDirIndex(windTarget);
+    const dFrom = DIRECTIONS[di].name;
+    const dTo = DIRECTIONS[oppositeIndex(di)].name;
+    const b = bf();
+
+    document.getElementById('roDir').innerText = (beaufort === 0) ? '无风（0级）' : (dFrom + '风');
+    document.getElementById('roLevel').innerText = b.level + '级 ' + b.name;
+
+    let detail;
+    if (beaufort === 0) {
+        detail = '无风：空气静止，此时无法判断风向';
+    } else if (beaufort === 1) {
+        detail = '风从' + dFrom + '方吹来 · 1级时风向标不动，可以看烟的飘向';
+    } else {
+        detail = '风从' + dFrom + '方吹来 · 旗帜飘向' + dTo + '方（与风向相反）';
+    }
+    document.getElementById('roDetail').innerText = detail;
+}
+
+function updateLevelButtons() {
+    document.querySelectorAll('.lv-btn').forEach(function (el) {
+        el.classList.toggle('active', Number(el.dataset.level) === beaufort);
+    });
+}
+
+function renderLevelButtons() {
+    const box = document.getElementById('levelBtns');
+    box.innerHTML = '';
+    BEAUFORT.forEach(function (b) {
+        const el = document.createElement('button');
+        el.className = 'lv-btn' + (b.level === beaufort ? ' active' : '');
+        el.innerText = b.level;
+        el.title = b.level + '级 ' + b.name + '：' + b.sign;
+        el.dataset.level = b.level;
+        el.onclick = function () { setBeaufort(b.level); };
+        box.appendChild(el);
+    });
+}
+
+function updateBeaufortTable() {
+    document.getElementById('beaufortBody').innerHTML = BEAUFORT.map(function (b) {
+        return '<tr class="' + (b.level === beaufort ? 'cur' : '') + '">' +
+            '<td class="lv">' + b.level + '级</td><td>' + b.name + '</td><td>' + b.sign + '</td></tr>';
+    }).join('');
+}
+
+function setBeaufort(lv) {
+    if (mode !== 'explore') return;
+    beaufort = Math.max(0, Math.min(6, lv));
+    applyAudio();
+    updateReadout();
+    updateLevelButtons();
+    updateBeaufortTable();
+    playClick();
+}
+
+function setAnswerVisible(v) {
+    answerVisible = v;
+    document.getElementById('readoutMain').hidden = !v;
+    document.getElementById('readoutMask').hidden = v;
+    const btn = document.getElementById('btnHide');
+    btn.classList.toggle('active', !v);
+    btn.innerText = v ? '🙈 隐藏答案 (H)' : '👁 显示答案 (H)';
+}
+
+/* ---------------- 模式切换 ---------------- */
+function updateModeUI() {
+    const isQuiz = mode === 'quiz';
+    document.getElementById('quizPanel').hidden = !isQuiz;
+    document.getElementById('controlPanel').hidden = isQuiz;
+    document.getElementById('btnExitQuiz').hidden = !isQuiz;
+    canvas.style.cursor = isQuiz ? 'default' : 'grab';
+}
+
+function startQuiz() {
+    mode = 'quiz';
+    const di = Math.floor(Math.random() * 8);
+    windTarget = DIRECTIONS[di].angle;
+    windShown = windTarget;
+    vaneShown = windTarget;
+    beaufort = 2 + Math.floor(Math.random() * 5);   // 2~6 级：保证有可观察的现象
+    quiz = { selDir: null, selLevel: null, answered: false };
+    setAnswerVisible(false);
+    document.getElementById('quizFeedback').hidden = true;
+    applyAudio();
+    updateLevelButtons();
+    updateBeaufortTable();
+    renderQuiz();
+    updateModeUI();
+    playClick();
+}
+
+function exitQuiz() {
+    mode = 'explore';
+    setAnswerVisible(true);
+    updateModeUI();
+    playClick();
+}
+
+function renderQuiz() {
+    const dg = document.getElementById('quizDirs');
+    dg.innerHTML = '';
+    const correctDir = nearestDirIndex(windTarget);
+    DIRECTIONS.forEach(function (d, i) {
+        const el = document.createElement('button');
+        el.className = 'q-btn';
+        el.innerText = d.name;
+        if (quiz.selDir === i) el.classList.add('sel');
+        if (quiz.answered) {
+            if (i === correctDir) el.classList.add('right');
+            else if (i === quiz.selDir) el.classList.add('wrong');
+        }
+        el.onclick = function () {
+            if (quiz.answered) return;
+            quiz.selDir = i; renderQuiz();
+        };
+        dg.appendChild(el);
+    });
+
+    const lg = document.getElementById('quizLevels');
+    lg.innerHTML = '';
+    BEAUFORT.forEach(function (b, i) {
+        const el = document.createElement('button');
+        el.className = 'q-btn';
+        el.innerText = i + '级';
+        if (quiz.selLevel === i) el.classList.add('sel');
+        if (quiz.answered) {
+            if (i === beaufort) el.classList.add('right');
+            else if (i === quiz.selLevel) el.classList.add('wrong');
+        }
+        el.onclick = function () {
+            if (quiz.answered) return;
+            quiz.selLevel = i; renderQuiz();
+        };
+        lg.appendChild(el);
+    });
+}
+
+function submitQuiz() {
+    if (quiz.answered) return;
+    if (quiz.selDir === null || quiz.selLevel === null) {
+        const fb = document.getElementById('quizFeedback');
+        fb.hidden = false;
+        fb.innerHTML = '请先选择<b>风向</b>和<b>风力</b>，再提交作答。';
+        return;
+    }
+    quiz.answered = true;
+    const correctDir = nearestDirIndex(windTarget);
+    const dFrom = DIRECTIONS[correctDir].name;
+    const dTo = DIRECTIONS[oppositeIndex(correctDir)].name;
+    const b = BEAUFORT[beaufort];
+    const okDir = quiz.selDir === correctDir;
+    const okLv = quiz.selLevel === beaufort;
+
+    let html = '';
+    html += okDir
+        ? '✅ 风向正确：<b>' + dFrom + '风</b>（风从' + dFrom + '方吹来）'
+        : '❌ 风向不对：正确答案是 <b>' + dFrom + '风</b>（你选了' + DIRECTIONS[quiz.selDir].name + '风）';
+    html += '<br>';
+    html += okLv
+        ? '✅ 风力正确：<b>' + b.level + '级 ' + b.name + '</b>'
+        : '❌ 风力不对：正确答案是 <b>' + b.level + '级 ' + b.name + '</b>（你选了' + quiz.selLevel + '级）';
+    html += '<br><span style="color:#9fc3e2">判断方法：风向标箭头指向' + dFrom + '方 → 所以是' + dFrom +
+        '风；旗帜飘向' + dTo + '方。当前现象符合“' + b.sign + '”。</span>';
+
+    const fb = document.getElementById('quizFeedback');
+    fb.hidden = false;
+    fb.innerHTML = html;
+    renderQuiz();
+    setAnswerVisible(true);   // 提交后自动揭晓答案
+    playClick();
+}
+
+/* ---------------- 记录（天气日历） ---------------- */
+function addRecord() {
+    const di = nearestDirIndex(windTarget);
+    const b = BEAUFORT[beaufort];
+    const now = new Date();
+    const t = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+    records.unshift({
+        dir: (beaufort === 0 ? '无风' : DIRECTIONS[di].name + '风'),
+        level: b.level + '级 ' + b.name,
+        time: t
+    });
+    if (records.length > 6) records.pop();
+    renderRecords();
+    playClick();
+}
+function renderRecords() {
+    const box = document.getElementById('records');
+    if (!records.length) {
+        box.innerHTML = '<div class="rec-empty">还没有记录。点击「记录本次」把观测到的风向、风力记到天气日历里。</div>';
+        return;
+    }
+    box.innerHTML = records.map(function (r) {
+        return '<div class="rec-item"><span>' + r.time + '</span><b>' + r.dir + '</b><span>' + r.level + '</span></div>';
+    }).join('');
+}
+
+/* ---------------- 放大镜 ---------------- */
+function applyMagPos() {
+    if (magPos) {
+        magPanel.style.left = magPos.x + 'px';
+        magPanel.style.top = magPos.y + 'px';
+    } else {
+        magPanel.style.left = '16px';
+        magPanel.style.top = '16px';
+    }
+}
+function toggleMag() {
+    magOn = !magOn;
+    magPanel.classList.toggle('on', magOn);
+    const btn = document.getElementById('btnMag');
+    btn.classList.toggle('active', magOn);
+    btn.innerText = magOn ? '🔍 关闭放大镜 (L)' : '🔍 放大镜 (L)';
+    if (magOn) { applyMagPos(); drawMag(); }
+    playClick();
+}
+function startMagDrag(e) {
+    if (!magOn) return;
+    magDragging = true;
+    const t = e.touches ? e.touches[0] : e;
+    const r = magPanel.getBoundingClientRect();
+    magOffset.x = t.clientX - r.left;
+    magOffset.y = t.clientY - r.top;
+    e.preventDefault();
+}
+function moveMagDrag(e) {
+    if (!magDragging) return;
+    const t = e.touches ? e.touches[0] : e;
+    const sr = stage.getBoundingClientRect();
+    magPos = {
+        x: t.clientX - sr.left - magOffset.x,
+        y: t.clientY - sr.top - magOffset.y
+    };
+    applyMagPos();
+    e.preventDefault();
+}
+function endMagDrag() { magDragging = false; }
+
+/* ---------------- 拖拽风扇（仅自由探索模式） ---------------- */
+function pointAngle(clientX, clientY) {
+    const r = canvas.getBoundingClientRect();
+    return Math.atan2(clientY - r.top - cy, clientX - r.left - cx);
+}
+function snapWind() {
+    windTarget = DIRECTIONS[nearestDirIndex(windTarget)].angle;
+    updateReadout();
+}
+function hitFan(clientX, clientY) {
+    const r = canvas.getBoundingClientRect();
+    const p = fanPos();
+    return Math.hypot(clientX - r.left - p.x, clientY - r.top - p.y) < 62;
+}
+canvas.addEventListener('mousedown', function (e) {
+    if (mode !== 'explore') return;
+    if (hitFan(e.clientX, e.clientY)) {
+        dragging = true;
+        canvas.style.cursor = 'grabbing';
+    }
+});
+window.addEventListener('mousemove', function (e) {
+    if (!dragging) return;
+    windTarget = pointAngle(e.clientX, e.clientY);
+    updateReadout();
+});
+window.addEventListener('mouseup', function () {
+    if (dragging) { dragging = false; canvas.style.cursor = 'grab'; snapWind(); }
+});
+canvas.addEventListener('touchstart', function (e) {
+    if (mode !== 'explore') return;
+    const t = e.touches[0];
+    if (hitFan(t.clientX, t.clientY)) {
+        dragging = true;
+        e.preventDefault();
+    }
+}, { passive: false });
+canvas.addEventListener('touchmove', function (e) {
+    if (!dragging) return;
+    const t = e.touches[0];
+    windTarget = pointAngle(t.clientX, t.clientY);
+    updateReadout();
+    e.preventDefault();
+}, { passive: false });
+window.addEventListener('touchend', function () {
+    if (dragging) { dragging = false; snapWind(); }
+});
+window.addEventListener('touchcancel', function () { dragging = false; });
+
+magHandle.addEventListener('mousedown', startMagDrag);
+magHandle.addEventListener('touchstart', startMagDrag, { passive: false });
+window.addEventListener('mousemove', moveMagDrag);
+window.addEventListener('touchmove', moveMagDrag, { passive: false });
+window.addEventListener('mouseup', endMagDrag);
+window.addEventListener('touchend', endMagDrag);
+
+/* ---------------- 教师工具按钮 ---------------- */
+document.getElementById('btnHide').onclick = function () { setAnswerVisible(!answerVisible); };
+document.getElementById('btnMag').onclick = toggleMag;
+document.getElementById('btnQuiz').onclick = startQuiz;
+document.getElementById('btnExitQuiz').onclick = exitQuiz;
+document.getElementById('btnReset').onclick = function () {
+    mode = 'explore';
+    windTarget = -Math.PI / 2;
+    windShown = -Math.PI / 2;
+    vaneShown = -Math.PI / 2;
+    beaufort = 2;
+    setAnswerVisible(true);
+    document.getElementById('quizFeedback').hidden = true;
+    applyAudio(); updateReadout(); updateLevelButtons(); updateBeaufortTable(); updateModeUI();
+    playClick();
+};
+document.getElementById('btnMute').onclick = function () {
+    muted = !muted;
+    applyAudio();
+    this.innerText = muted ? '🔇 声音关' : '🔊 声音开';
+    this.classList.toggle('active', muted);
+};
+document.getElementById('btnRecord').onclick = addRecord;
+document.getElementById('btnClearRecords').onclick = function () {
+    records = [];
+    renderRecords();
+    playClick();
+};
+document.getElementById('btnSubmit').onclick = submitQuiz;
+
+/* ---------------- 快捷键：H 隐藏答案 / L 放大镜 / R 随机出题 ---------------- */
+window.addEventListener('keydown', function (e) {
+    const k = (e.key || '').toLowerCase();
+    if (k === 'h') { setAnswerVisible(!answerVisible); }
+    else if (k === 'l') { toggleMag(); }
+    else if (k === 'r') { startQuiz(); }
+});
+
+/* ---------------- 初始化 ---------------- */
+document.getElementById('intro').addEventListener('click', startApp);
+resize();
+for (let i = 0; i < 40; i++) windLines.push(new WindLine());
+for (let i = 0; i < 26; i++) leaves.push(new Leaf());
+renderLevelButtons();
+renderRecords();
+updateBeaufortTable();
+updateReadout();
+updateModeUI();
+animate();
+</script>
+</body>
+</html>

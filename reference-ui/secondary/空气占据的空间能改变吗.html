@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分子压缩实验：空气 vs 水 (注射器模拟)</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+        body {
+            background: radial-gradient(circle at center, #1b263b 0%, #0d131f 100%);
+            color: #e0e1dd;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 900px;
+            padding: 16px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 12px;
+        }
+        h1 {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            background: linear-gradient(90deg, #64dfdf, #48cae4, #e0aaff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .subtitle {
+            font-size: 13px;
+            color: #8da9c4;
+            margin-top: 4px;
+        }
+
+        /* 控制面板 */
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 14px;
+            align-items: center;
+        }
+        .btn-mode {
+            padding: 9px 22px;
+            border-radius: 30px;
+            border: 2px solid transparent;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            background: rgba(255, 255, 255, 0.08);
+            color: #cdd5df;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-mode:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-1px);
+        }
+        .btn-mode.active-air {
+            background: #0077b6;
+            border-color: #00b4d8;
+            color: #fff;
+            box-shadow: 0 0 16px rgba(0, 180, 216, 0.4);
+        }
+        .btn-mode.active-water {
+            background: #03045e;
+            border-color: #48cae4;
+            color: #fff;
+            box-shadow: 0 0 16px rgba(72, 202, 228, 0.4);
+        }
+
+        /* 模拟器主区域 */
+        .sim-area {
+            position: relative;
+            background: rgba(13, 27, 42, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 18px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            padding: 12px 18px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        canvas {
+            background: transparent;
+            cursor: grab;
+        }
+        canvas:active {
+            cursor: grabbing;
+        }
+
+        /* 右侧状态数据卡片 */
+        .dashboard {
+            width: 260px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+            padding: 12px;
+            border-left: 4px solid #00b4d8;
+        }
+        .card h3 {
+            font-size: 13px;
+            color: #90e0ef;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+        .stat-value {
+            font-weight: 700;
+            font-family: monospace;
+            color: #fff;
+        }
+
+        /* 压力进度条 */
+        .meter-container {
+            width: 100%;
+            height: 10px;
+            background: #111a2e;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-top: 6px;
+        }
+        .meter-fill {
+            height: 100%;
+            width: 0%;
+            transition: width 0.05s ease, background-color 0.2s;
+            background: #00b4d8;
+        }
+
+        .hint {
+            font-size: 12px;
+            color: #a0aec0;
+            line-height: 1.5;
+            background: rgba(239, 71, 111, 0.08);
+            border-radius: 8px;
+            padding: 10px;
+            border: 1px solid rgba(239, 71, 111, 0.2);
+        }
+        .hint.water {
+            background: rgba(0, 180, 216, 0.08);
+            border-color: rgba(0, 180, 216, 0.2);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>空气与水分子的压缩实验</h1>
+        <p class="subtitle">针筒密封状态：按住并向下拖动活塞杆，直观感受可压缩性差异</p>
+    </header>
+
+    <div class="controls">
+        <button class="btn-mode active-air" id="btnAir" onclick="switchMode('air')">
+            💨 空气 (气态分子)
+        </button>
+        <button class="btn-mode" id="btnWater" onclick="switchMode('water')">
+            💧 水 (液态分子)
+        </button>
+        <button class="btn-mode" id="btnSound" onclick="toggleAudio()" style="padding: 9px 14px;">
+            🔊 开启音效
+        </button>
+    </div>
+
+    <div class="sim-area">
+        <canvas id="canvas" width="460" height="480"></canvas>
+
+        <div class="dashboard">
+            <div class="card" id="stateCard">
+                <h3>当前状态参数</h3>
+                <div class="stat-item">
+                    <span>当前体积:</span>
+                    <span class="stat-value" id="valVolume">50 mL</span>
+                </div>
+                <div class="stat-item">
+                    <span>内部压强:</span>
+                    <span class="stat-value" id="valPressure">101.3 kPa</span>
+                </div>
+                <div class="stat-item">
+                    <span>分子间平均间距:</span>
+                    <span class="stat-value" id="valDistance">大 (稀疏)</span>
+                </div>
+                <div style="margin-top:8px;">
+                    <div class="stat-item" style="font-size:11px; color:#8da9c4;">
+                        <span>压缩阻力等级</span>
+                        <span id="resistanceText">极小</span>
+                    </div>
+                    <div class="meter-container">
+                        <div class="meter-fill" id="resistanceMeter"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hint" id="explainCard">
+                <strong>💡 科学原理说明：</strong><br>
+                <strong>气体：</strong>分子之间距离大约是分子本身直径的十倍以上，分子间引力极小，有巨大的空隙，因此活塞<strong>非常容易推入</strong>。<br>
+                <span style="color:#64dfdf;">试着把活塞向下压深，然后松手看看弹性回弹！</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+/**
+ * -------------------------------------------------------------
+ * 1. Web Audio 音频引擎 (无外部音频文件，纯正弦波/滤波白噪声合成)
+ * -------------------------------------------------------------
+ */
+let audioCtx = null;
+let soundEnabled = false;
+let airNoiseNode = null;
+let airFilterNode = null;
+let airGainNode = null;
+
+function initAudio() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+}
+
+function toggleAudio() {
+    initAudio();
+    soundEnabled = !soundEnabled;
+    const btn = document.getElementById('btnSound');
+    if (soundEnabled) {
+        btn.innerHTML = '🔊 音效: 开';
+        btn.style.borderColor = '#48cae4';
+    } else {
+        btn.innerHTML = '🔈 音效: 关';
+        btn.style.borderColor = 'transparent';
+        stopAirHiss();
+    }
+}
+
+// 模拟空气压缩时的连续嘶嘶声 (White Noise + Bandpass)
+function updateAirHiss(compressionRatio) {
+    if (!soundEnabled || !audioCtx) return;
+
+    if (compressionRatio > 0.05) {
+        if (!airNoiseNode) {
+            const bufferSize = audioCtx.sampleRate * 2;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+            airNoiseNode = audioCtx.createBufferSource();
+            airNoiseNode.buffer = buffer;
+            airNoiseNode.loop = true;
+
+            airFilterNode = audioCtx.createBiquadFilter();
+            airFilterNode.type = 'bandpass';
+            airFilterNode.Q.value = 3.5;
+
+            airGainNode = audioCtx.createGain();
+            airGainNode.gain.value = 0.001;
+
+            airNoiseNode.connect(airFilterNode);
+            airFilterNode.connect(airGainNode);
+            airGainNode.connect(audioCtx.destination);
+            airNoiseNode.start();
+        }
+
+        // 根据压缩程度调制频率与音量
+        const targetFreq = 400 + compressionRatio * 2800;
+        const targetGain = Math.min(0.2, compressionRatio * 0.22);
+        airFilterNode.frequency.setTargetAtTime(targetFreq, audioCtx.currentTime, 0.05);
+        airGainNode.gain.setTargetAtTime(targetGain, audioCtx.currentTime, 0.05);
+    } else {
+        stopAirHiss();
+    }
+}
+
+function stopAirHiss() {
+    if (airGainNode && audioCtx) {
+        airGainNode.gain.setTargetAtTime(0.0001, audioCtx.currentTime, 0.05);
+    }
+}
+
+// 模拟气体释放回弹的 Pop 声
+function playReleasePop() {
+    if (!soundEnabled || !audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(320, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(70, audioCtx.currentTime + 0.18);
+    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.18);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.19);
+}
+
+// 模拟水无法被压缩时的硬撞击/受阻警报撞击声 (Hard Thud / Mechanical Clunk)
+let lastThudTime = 0;
+function playHardThud() {
+    if (!soundEnabled || !audioCtx) return;
+    const now = performance.now();
+    if (now - lastThudTime < 180) return; // 节流，避免震动过于密集
+    lastThudTime = now;
+
+    // 低频闷响
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(160, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(35, audioCtx.currentTime + 0.09);
+    gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.09);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.1);
+
+    // 短促金属碰壁脆响
+    const click = audioCtx.createOscillator();
+    const clickGain = audioCtx.createGain();
+    click.type = 'sine';
+    click.frequency.setValueAtTime(1100, audioCtx.currentTime);
+    clickGain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    clickGain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.03);
+    click.connect(clickGain);
+    clickGain.connect(audioCtx.destination);
+    click.start();
+    click.stop(audioCtx.currentTime + 0.035);
+}
+
+/**
+ * -------------------------------------------------------------
+ * 2. 模拟器核心参数与状态
+ * -------------------------------------------------------------
+ */
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+let mode = 'air'; // 'air' | 'water'
+
+// 针筒几何结构定义
+const syringe = {
+    x: 150,
+    y: 80,
+    width: 140,
+    height: 320,
+    tipWidth: 20,
+    tipHeight: 30,
+    plungerMaxY: 90,   // 最顶部 (50ml)
+    plungerMinY: 340,  // 最大物理推挤行程
+    rubberHeight: 30
+};
+
+// 活塞当前动态物理位置
+let plungerY = syringe.plungerMaxY;
+let plungerVelocity = 0;
+let isDragging = false;
+let dragStartY = 0;
+let plungerStartDragY = 0;
+
+// 粒子系统
+const AIR_PARTICLE_COUNT = 70;
+const WATER_PARTICLE_COUNT = 320;
+let particles = [];
+
+class Particle {
+    constructor(x, y, vx, vy, isWater = false) {
+        this.x = x;
+        this.y = y;
+        this.vx = vx;
+        this.vy = vy;
+        this.isWater = isWater;
+        this.radius = isWater ? 5.2 : 5;
+        this.origX = x;
+        this.origY = y;
+    }
+
+    update(topLimit, bottomLimit, leftLimit, rightLimit) {
+        if (!this.isWater) {
+            // 空气粒子：自由高速随机热运动
+            this.x += this.vx;
+            this.y += this.vy;
+
+            // 侧壁碰撞
+            if (this.x - this.radius <= leftLimit) {
+                this.x = leftLimit + this.radius;
+                this.vx *= -1;
+            } else if (this.x + this.radius >= rightLimit) {
+                this.x = rightLimit - this.radius;
+                this.vx *= -1;
+            }
+
+            // 底壁碰撞
+            if (this.y + this.radius >= bottomLimit) {
+                this.y = bottomLimit - this.radius;
+                this.vy *= -1;
+            }
+
+            // 活塞顶部橡胶头碰撞
+            if (this.y - this.radius <= topLimit) {
+                this.y = topLimit + this.radius;
+                this.vy = Math.abs(this.vy);
+            }
+        } else {
+            // 水分子：紧密排布，主要表现为分子间振动和流体扰动
+            this.x += (Math.random() - 0.5) * 0.8;
+            this.y += (Math.random() - 0.5) * 0.8;
+
+            // 极轻微边界约束
+            if (this.x < leftLimit + this.radius) this.x = leftLimit + this.radius;
+            if (this.x > rightLimit - this.radius) this.x = rightLimit - this.radius;
+            if (this.y < topLimit + this.radius) this.y = topLimit + this.radius;
+            if (this.y > bottomLimit - this.radius) this.y = bottomLimit - this.radius;
+        }
+    }
+
+    draw(ctx) {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        if (!this.isWater) {
+            // 空气分子：橙红色高亮小球，带随机热运动尾迹感
+            ctx.fillStyle = '#ff758f';
+            ctx.shadowColor = '#ff4d6d';
+            ctx.shadowBlur = 6;
+        } else {
+            // 水分子：天蓝色水润质感
+            ctx.fillStyle = '#48cae4';
+            ctx.shadowColor = '#00b4d8';
+            ctx.shadowBlur = 4;
+        }
+        ctx.fill();
+        ctx.shadowBlur = 0; // 重置
+    }
+}
+
+// 初始化粒子分布
+function initParticles() {
+    particles = [];
+    const topLimit = syringe.plungerMaxY + syringe.rubberHeight;
+    const bottomLimit = syringe.y + syringe.height;
+    const leftLimit = syringe.x + 8;
+    const rightLimit = syringe.x + syringe.width - 8;
+
+    if (mode === 'air') {
+        // 空气模式：稀疏分布在筒内
+        for (let i = 0; i < AIR_PARTICLE_COUNT; i++) {
+            const x = leftLimit + Math.random() * (rightLimit - leftLimit);
+            const y = topLimit + Math.random() * (bottomLimit - topLimit);
+            const speed = 2.5 + Math.random() * 2;
+            const angle = Math.random() * Math.PI * 2;
+            particles.push(new Particle(x, y, Math.cos(angle) * speed, Math.sin(angle) * speed, false));
+        }
+    } else {
+        // 水模式：密密麻麻紧密堆积（六边形蜂窝式密排）
+        const spacing = 11.5;
+        let row = 0;
+        for (let y = bottomLimit - 6; y > topLimit + 4; y -= spacing * 0.866) {
+            const offset = (row % 2) * (spacing / 2);
+            for (let x = leftLimit + 6 + offset; x < rightLimit - 4; x += spacing) {
+                particles.push(new Particle(x, y, 0, 0, true));
+            }
+            row++;
+        }
+    }
+}
+
+/**
+ * -------------------------------------------------------------
+ * 3. 交互与物理模拟循环
+ * -------------------------------------------------------------
+ */
+let shakeIntensity = 0; // 强压水时的微小震颤反馈
+
+function updatePhysics() {
+    const rubberBottom = plungerY + syringe.rubberHeight;
+    const cylinderBottom = syringe.y + syringe.height;
+
+    if (!isDragging) {
+        if (mode === 'air') {
+            // 空气弹性回弹力：玻意耳定律 P * V = const
+            // 越压到底部，反弹回复力越大
+            const compression = (plungerY - syringe.plungerMaxY) / (syringe.plungerMinY - syringe.plungerMaxY);
+            if (plungerY > syringe.plungerMaxY) {
+                const springForce = compression * 3.8;
+                plungerVelocity -= springForce;
+                plungerVelocity *= 0.88; // 阻尼
+                plungerY += plungerVelocity;
+
+                if (plungerY <= syringe.plungerMaxY) {
+                    plungerY = syringe.plungerMaxY;
+                    plungerVelocity = 0;
+                    playReleasePop();
+                }
+            }
+            stopAirHiss();
+        } else {
+            // 水模式：如果离开原位极快强行回弹
+            if (plungerY > syringe.plungerMaxY) {
+                plungerY += (syringe.plungerMaxY - plungerY) * 0.4;
+            }
+        }
+    }
+
+    // 震颤衰减
+    if (shakeIntensity > 0) {
+        shakeIntensity *= 0.85;
+        if (shakeIntensity < 0.1) shakeIntensity = 0;
+    }
+
+    // 更新粒子运动
+    const leftLimit = syringe.x + 4;
+    const rightLimit = syringe.x + syringe.width - 4;
+    particles.forEach(p => p.update(rubberBottom, cylinderBottom - 4, leftLimit, rightLimit));
+
+    updateTelemetry();
+}
+
+function updateTelemetry() {
+    const maxTravel = syringe.plungerMinY - syringe.plungerMaxY;
+    const currentTravel = plungerY - syringe.plungerMaxY;
+    const compressionRatio = Math.max(0, Math.min(1, currentTravel / maxTravel));
+
+    // 计算当前等效毫升数 (50ml -> ~10ml)
+    const currentVolume = (50 - compressionRatio * 40).toFixed(1);
+    document.getElementById('valVolume').textContent = `${currentVolume} mL`;
+
+    // 压强计算
+    let pressure, resistanceRatio;
+    if (mode === 'air') {
+        pressure = (101.3 / (1 - compressionRatio * 0.78)).toFixed(1);
+        resistanceRatio = compressionRatio;
+        document.getElementById('valDistance').textContent = compressionRatio > 0.6 ? '显著变小 (密挤)' : '大 (稀疏)';
+        document.getElementById('resistanceText').textContent = compressionRatio > 0.7 ? '极大 (反弹强烈)' : (compressionRatio > 0.3 ? '中等阻力' : '极小');
+    } else {
+        // 水模式：不可压缩
+        const isTryingToPush = currentTravel > 0.5;
+        pressure = isTryingToPush ? '超高 (> 20,000 kPa)' : '101.3 kPa';
+        resistanceRatio = isTryingToPush ? 1.0 : 0.05;
+        document.getElementById('valDistance').textContent = '极小 (几无空隙)';
+        document.getElementById('resistanceText').textContent = isTryingToPush ? '无限大 (无法推入!)' : '固壁刚性阻力';
+    }
+
+    document.getElementById('valPressure').textContent = typeof pressure === 'string' && pressure.includes('kPa') ? pressure : `${pressure} kPa`;
+    
+    // 更新仪表盘条
+    const meter = document.getElementById('resistanceMeter');
+    meter.style.width = `${resistanceRatio * 100}%`;
+    meter.style.backgroundColor = resistanceRatio > 0.8 ? '#ef476f' : (resistanceRatio > 0.4 ? '#ffd166' : '#00b4d8');
+}
+
+/**
+ * -------------------------------------------------------------
+ * 4. 绘图渲染 (Canvas 高精针筒与粒子)
+ * -------------------------------------------------------------
+ */
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.save();
+    // 强压水时的震颤摇晃
+    if (shakeIntensity > 0) {
+        ctx.translate((Math.random() - 0.5) * shakeIntensity * 6, (Math.random() - 0.5) * shakeIntensity * 6);
+    }
+
+    // 1. 绘制针筒刻度管身背景 (玻璃半透明质感)
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+    ctx.fillRect(syringe.x, syringe.y, syringe.width, syringe.height);
+
+    // 如果是水模式，绘制浅蓝色的水体背景底色
+    if (mode === 'water') {
+        const waterTop = syringe.plungerMaxY + syringe.rubberHeight;
+        const waterHeight = (syringe.y + syringe.height) - waterTop;
+        const waterGrad = ctx.createLinearGradient(syringe.x, waterTop, syringe.x + syringe.width, waterTop);
+        waterGrad.addColorStop(0, 'rgba(0, 119, 182, 0.3)');
+        waterGrad.addColorStop(0.5, 'rgba(72, 202, 228, 0.2)');
+        waterGrad.addColorStop(1, 'rgba(0, 119, 182, 0.35)');
+        ctx.fillStyle = waterGrad;
+        ctx.fillRect(syringe.x, waterTop, syringe.width, waterHeight);
+    }
+
+    // 2. 绘制筒内粒子
+    particles.forEach(p => p.draw(ctx));
+
+    // 3. 绘制针筒刻度线
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+    ctx.lineWidth = 1.5;
+    const ticks = 10;
+    const tickStep = (syringe.plungerMinY - syringe.plungerMaxY) / ticks;
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.font = '11px monospace';
+    for (let i = 0; i <= ticks; i++) {
+        const yPos = syringe.plungerMaxY + syringe.rubberHeight + i * tickStep;
+        const isLong = i % 2 === 0;
+        const length = isLong ? 18 : 10;
+        ctx.beginPath();
+        ctx.moveTo(syringe.x + syringe.width - length, yPos);
+        ctx.lineTo(syringe.x + syringe.width, yPos);
+        ctx.stroke();
+
+        if (isLong) {
+            const ml = 50 - i * 4;
+            ctx.fillText(`${ml}`, syringe.x + syringe.width - 36, yPos + 4);
+        }
+    }
+
+    // 4. 绘制活塞 (Piston Rod & Black Rubber Head)
+    const rodWidth = 24;
+    const rodLeft = syringe.x + (syringe.width - rodWidth) / 2;
+
+    // 活塞推杆 (塑料磨砂金属质感)
+    const rodGrad = ctx.createLinearGradient(rodLeft, 0, rodLeft + rodWidth, 0);
+    rodGrad.addColorStop(0, '#adb5bd');
+    rodGrad.addColorStop(0.5, '#f8f9fa');
+    rodGrad.addColorStop(1, '#6c757d');
+    ctx.fillStyle = rodGrad;
+    ctx.fillRect(rodLeft, plungerY - 80, rodWidth, 80);
+
+    // 顶部大把手 (用户抓取拖动处)
+    const handleWidth = 90;
+    const handleLeft = syringe.x + (syringe.width - handleWidth) / 2;
+    ctx.fillStyle = '#495057';
+    ctx.beginPath();
+    ctx.roundRect(handleLeft, plungerY - 88, handleWidth, 12, 6);
+    ctx.fill();
+    ctx.strokeStyle = '#adb5bd';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // 提示手势微光
+    ctx.fillStyle = '#64dfdf';
+    ctx.font = '11px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('▼ 按住手柄拖拽 ▼', syringe.x + syringe.width / 2, plungerY - 96);
+
+    // 黑色橡胶活塞头 (带两道密封圈纹理)
+    ctx.fillStyle = '#1e1e24';
+    ctx.beginPath();
+    ctx.roundRect(syringe.x + 2, plungerY, syringe.width - 4, syringe.rubberHeight, 3);
+    ctx.fill();
+
+    // 橡胶头密封环高光
+    ctx.fillStyle = '#343a40';
+    ctx.fillRect(syringe.x + 2, plungerY + 5, syringe.width - 4, 4);
+    ctx.fillRect(syringe.x + 2, plungerY + 18, syringe.width - 4, 4);
+
+    // 5. 绘制玻璃外壁轮廓及底端封死喷嘴
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    // 左管壁
+    ctx.moveTo(syringe.x, syringe.y);
+    ctx.lineTo(syringe.x, syringe.y + syringe.height);
+    // 左下收口
+    const tipX = syringe.x + (syringe.width - syringe.tipWidth) / 2;
+    ctx.lineTo(tipX, syringe.y + syringe.height);
+    ctx.lineTo(tipX, syringe.y + syringe.height + syringe.tipHeight);
+    // 密封头封堵 (显示密封塞)
+    ctx.lineTo(tipX + syringe.tipWidth, syringe.y + syringe.height + syringe.tipHeight);
+    // 右下收口
+    ctx.lineTo(tipX + syringe.tipWidth, syringe.y + syringe.height);
+    ctx.lineTo(syringe.x + syringe.width, syringe.y + syringe.height);
+    // 右管壁
+    ctx.lineTo(syringe.x + syringe.width, syringe.y);
+    ctx.stroke();
+
+    // 封底小密封塞 (红色胶塞，提示密闭不可漏气漏水)
+    ctx.fillStyle = '#e63946';
+    ctx.fillRect(tipX - 2, syringe.y + syringe.height + syringe.tipHeight - 8, syringe.tipWidth + 4, 14);
+    ctx.fillStyle = '#fff';
+    ctx.font = '10px sans-serif';
+    ctx.fillText('密闭', tipX + syringe.tipWidth / 2, syringe.y + syringe.height + syringe.tipHeight + 18);
+
+    // 6. 如果受到强烈推挤，在活塞底部画出力阻受阻波纹
+    if (mode === 'water' && isDragging) {
+        ctx.strokeStyle = 'rgba(239, 71, 111, 0.8)';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(syringe.x + 10, plungerY + syringe.rubberHeight + 2);
+        ctx.lineTo(syringe.x + syringe.width - 10, plungerY + syringe.rubberHeight + 2);
+        ctx.stroke();
+
+        ctx.fillStyle = '#ef476f';
+        ctx.font = 'bold 13px sans-serif';
+        ctx.fillText('❌ 分子排斥力巨大，无法压缩！', syringe.x + syringe.width / 2, plungerY + syringe.rubberHeight + 24);
+    }
+
+    ctx.restore();
+}
+
+/**
+ * -------------------------------------------------------------
+ * 5. 拖动交互事件处理 (支持鼠标与移动端触摸)
+ * -------------------------------------------------------------
+ */
+function getCanvasPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return {
+        x: clientX - rect.left,
+        y: clientY - rect.top
+    };
+}
+
+function handleStart(pos) {
+    initAudio();
+    // 判断是否点击在把手或推杆区域
+    if (pos.y >= plungerY - 100 && pos.y <= plungerY + syringe.rubberHeight + 15 &&
+        pos.x >= syringe.x - 20 && pos.x <= syringe.x + syringe.width + 20) {
+        isDragging = true;
+        dragStartY = pos.y;
+        plungerStartDragY = plungerY;
+    }
+}
+
+function handleMove(pos) {
+    if (!isDragging) return;
+
+    const deltaY = pos.y - dragStartY;
+    let targetY = plungerStartDragY + deltaY;
+
+    if (mode === 'air') {
+        // 空气模式：可压缩，越向下阻力越大（增加拖拽手感迟滞）
+        if (targetY < syringe.plungerMaxY) {
+            targetY = syringe.plungerMaxY;
+        } else if (targetY > syringe.plungerMinY) {
+            // 到达物理极限
+            targetY = syringe.plungerMinY;
+        }
+        plungerY = targetY;
+
+        const maxTravel = syringe.plungerMinY - syringe.plungerMaxY;
+        const comp = (plungerY - syringe.plungerMaxY) / maxTravel;
+        updateAirHiss(comp);
+    } else {
+        // 水模式：液体几乎完全不可压缩！
+        // 允许位移极微小的几个像素并剧烈反弹
+        if (targetY > syringe.plungerMaxY + 3) {
+            plungerY = syringe.plungerMaxY + 3; // 物理死锁
+            shakeIntensity = 2.5; // 触发抖动
+            playHardThud();
+        } else if (targetY < syringe.plungerMaxY) {
+            plungerY = syringe.plungerMaxY;
+        } else {
+            plungerY = targetY;
+        }
+    }
+}
+
+function handleEnd() {
+    if (isDragging) {
+        isDragging = false;
+        stopAirHiss();
+    }
+}
+
+canvas.addEventListener('mousedown', e => handleStart(getCanvasPos(e)));
+window.addEventListener('mousemove', e => handleMove(getCanvasPos(e)));
+window.addEventListener('mouseup', handleEnd);
+
+canvas.addEventListener('touchstart', e => {
+    handleStart(getCanvasPos(e));
+    e.preventDefault();
+}, { passive: false });
+window.addEventListener('touchmove', e => {
+    handleMove(getCanvasPos(e));
+}, { passive: false });
+window.addEventListener('touchend', handleEnd);
+
+// 模式切换
+function switchMode(newMode) {
+    initAudio();
+    mode = newMode;
+    plungerY = syringe.plungerMaxY;
+    plungerVelocity = 0;
+    isDragging = false;
+    stopAirHiss();
+
+    const btnAir = document.getElementById('btnAir');
+    const btnWater = document.getElementById('btnWater');
+    const stateCard = document.getElementById('stateCard');
+    const explainCard = document.getElementById('explainCard');
+
+    if (mode === 'air') {
+        btnAir.className = 'btn-mode active-air';
+        btnWater.className = 'btn-mode';
+        stateCard.style.borderLeftColor = '#00b4d8';
+        explainCard.className = 'hint';
+        explainCard.innerHTML = `
+            <strong>💡 科学原理说明：</strong><br>
+            <strong>气体（空气）：</strong>分子之间距离大约是分子本身直径的 10 倍以上，分子间引力极弱，存在极大的压缩空间。因此活塞<strong>可以被轻松压下</strong>。<br>
+            <span style="color:#64dfdf;">试着压到底部并松开手，观察气压弹性回弹！</span>
+        `;
+    } else {
+        btnWater.className = 'btn-mode active-water';
+        btnAir.className = 'btn-mode';
+        stateCard.style.borderLeftColor = '#48cae4';
+        explainCard.className = 'hint water';
+        explainCard.innerHTML = `
+            <strong>💡 科学原理说明：</strong><br>
+            <strong>液体（水）：</strong>水分子已经紧挨在一起，分子间距几乎等于分子自身直径。如果强行压缩，分子间会产生极其巨大的<strong>近程斥力（电荷排斥）</strong>，宏观表现为<strong>几乎完全无法压缩</strong>！
+        `;
+    }
+    initParticles();
+}
+
+// 主渲染与物理循环
+function loop() {
+    updatePhysics();
+    draw();
+    requestAnimationFrame(loop);
+}
+
+// 启动
+initParticles();
+loop();
+</script>
+</body>
+</html>

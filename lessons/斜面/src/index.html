@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101f2b">
+  <meta name="description" content="斜面｜胡拉拉搬家公司小学科学互动课堂">
+  <title>斜面 · 胡拉拉搬家公司</title>
+  <style>/* BUILD_CSS */</style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="identity">
+        <span class="identity-mark" aria-hidden="true">H</span>
+        <div><strong>胡拉拉搬家公司</strong><small>小学科学 · 六年级 · 斜面</small></div>
+      </div>
+      <div class="top-actions">
+        <span class="live-label"><i></i>课堂研讨</span>
+        <button id="fullscreenButton" class="ghost-button" type="button">全屏展示</button>
+      </div>
+    </header>
+
+    <nav class="phase-nav" aria-label="课堂流程">
+      <button class="phase-button active" data-phase="context" type="button"><span>01</span> 搬货难题</button>
+      <button class="phase-button" data-phase="evidence" type="button"><span>02</span> 数据找规律</button>
+      <button class="phase-button" data-phase="routes" type="button"><span>03</span> 山路挑战</button>
+    </nav>
+
+    <div class="lesson-heading">
+      <div><div class="eyebrow" id="phaseEyebrow">项目一 · 货物搬上车</div><h1 id="phaseTitle">怎样把同一件货物搬上货车？</h1></div>
+      <p id="phaseSubtitle">先提出办法，再用真实实验检验。</p>
+    </div>
+
+    <main class="workspace">
+      <aside class="side-panel controls" aria-label="场景控制">
+        <div class="panel-heading"><span id="controlHeading">比较搬运方式</span><small>课堂操作</small></div>
+        <div class="panel-content">
+          <div id="rampControls">
+            <div id="contextWait" class="rule-note context-wait"><strong>先让问题发生</strong><p>观察同一件货物与较高的货车平台。学生说出办法后，教师再展示相应结构。</p></div>
+            <button id="showMethodsButton" class="quiet-button method-reveal" type="button" hidden>展示学生提出的办法</button>
+            <div id="methodChoices">
+            <p class="micro-label">同一重物 · 同一目标高度</p>
+            <div class="choice-list" role="group" aria-label="搬运方式">
+              <button class="choice active" type="button" data-ramp="lift"><span class="choice-index">A</span><span>直接提起<small>不经过斜面</small></span></button>
+              <button class="choice" type="button" data-ramp="short"><span class="choice-index">B</span><span>短斜面<small>较陡 · 路较短</small></span></button>
+              <button class="choice" type="button" data-ramp="medium"><span class="choice-index">C</span><span>中斜面<small>坡度居中</small></span></button>
+              <button class="choice" type="button" data-ramp="long"><span class="choice-index">D</span><span>长斜面<small>较缓 · 路较长</small></span></button>
+            </div>
+            <div class="rule-note"><strong>要保持什么相同？</strong><p>重物、到达高度、测量方式。用弹簧测力计沿搬运方向缓慢、尽量匀速地拉。</p></div>
+            </div>
+          </div>
+          <div id="routeControls" hidden>
+            <p class="micro-label">先做实物路线，再汇报方案</p>
+            <div class="route-tools">
+              <button id="drawRouteButton" class="choice" type="button">开始绘制路线</button>
+              <button id="pauseRouteButton" class="choice" type="button" hidden>暂停绘制 / 调整视角</button>
+              <button id="finishRouteButton" class="choice" type="button" hidden>完成绘制</button>
+              <button id="clearRouteButton" class="choice" type="button">清除路线</button>
+            </div>
+            <div class="rule-note"><strong>学生方案示意</strong><p id="routeToolNote">从山脚货车旁起笔。可暂停绘制、转动山体，再从上一段终点附近继续；实物搭建与遥控货车测试仍由学生完成。</p></div>
+          </div>
+        </div>
+        <div class="panel-bottom"><span class="status-dot"></span><span id="leftStatus">结构示意 · 不显示测量结果</span></div>
+      </aside>
+
+      <section class="stage" aria-label="三维课堂场景">
+        <div id="sceneHost" class="scene-host"></div>
+        <div id="sceneFallback" class="scene-fallback" hidden>此设备暂不能显示 3D 场景。问题、真实数据和课堂流程仍可使用。</div>
+        <div id="drawingSurface" class="drawing-surface" hidden aria-label="在山体上绘制学生路线"></div>
+        <div id="chartScreen" class="chart-screen" hidden>
+          <div class="chart-screen-head"><div><small>全班真实实验数据</small><h2>从全班实验数据中，你发现了什么？</h2></div><button id="closeChartButton" type="button">返回课堂场景</button></div>
+          <div id="largeClassChart" class="large-class-chart"></div>
+          <p class="chart-screen-note">柱形：参与计算的小组平均值　·　实心点：各组记录　·　空心点：未参与全班平均的小组</p>
+          <button id="largeRevealButton" class="reveal-button" type="button">揭示我们的发现</button>
+          <div id="largeRevealBox" class="reveal-box" hidden></div>
+        </div>
+        <div class="stage-top"><span><i></i> 3D 课堂示意</span><small id="stageContext">同一目标高度</small></div>
+        <div class="stage-tag" id="stageTag">直接提起</div>
+        <div class="stage-bottom">
+          <span id="stageCaption">请先观察货车平台与三种斜面的结构。</span>
+          <div class="stage-actions">
+            <button id="animateButton" type="button">重播问题动画</button>
+            <button id="resetViewButton" type="button">重置视角</button>
+          </div>
+        </div>
+      </section>
+
+      <aside class="side-panel discussion" aria-label="课堂研讨">
+        <div class="panel-heading"><span id="discussionHeading">先想一想</span><small>教师引导</small></div>
+        <div class="panel-content discussion-content">
+          <div class="question-num" id="questionNum">问题 01</div>
+          <h2 id="questionTitle">不直接用力搬，能用什么办法？</h2>
+          <p id="questionBody">观察货车平台与三块长短不同的木板。先预测哪一种办法可能更省力，并说出理由。</p>
+          <div id="dataPanel" class="data-panel" hidden>
+            <div class="data-head"><span>学生实测平均拉力</span><button id="openDataButton" type="button">录入真实数据</button></div>
+            <div class="data-views" role="group" aria-label="数据视图">
+              <button type="button" data-data-view="single" class="active">单组观察</button>
+              <button type="button" data-data-view="class">全班汇总</button>
+            </div>
+            <div id="singleGroupView">
+              <label class="select-label" for="groupSelect">当前展示小组</label>
+              <select id="groupSelect"></select>
+              <div id="singleDataEmpty" class="data-empty" hidden><strong>等待各组实验数据</strong><span>完成真实测量后，在这里录入并比较。</span></div>
+              <div id="forceChart" class="force-chart" aria-live="polite"></div>
+              <p id="singleDataFoot" class="data-foot">图形仅依据当前小组的真实读数绘制。</p>
+            </div>
+            <div id="classView" hidden>
+              <div id="classDataEmpty" class="data-empty" hidden><strong>等待各组实验数据</strong><span>完成真实测量后，在这里录入并比较。</span></div>
+              <div id="smallClassChart" class="small-class-chart" aria-label="全班平均拉力与各组数据点"></div>
+              <button id="expandChartButton" class="expand-chart-button" type="button" hidden>放大图表</button>
+              <p id="classSummary" class="class-summary"></p>
+              <p id="classDataFoot" class="data-foot">单位 N；空白不计入平均，空心点不参与平均。</p>
+            </div>
+          </div>
+          <div id="routePrompt" class="route-prompt" hidden>
+            <strong>设计提示</strong>
+            <span>哪里比较陡？</span>
+            <span>转弯是否方便？</span>
+            <span>货车能否稳定通过？</span>
+            <span>哪些地方还可以调整？</span>
+          </div>
+          <div id="extensionPanel" class="extension-panel" hidden>
+            <strong>生活中的斜面</strong>
+            <span>坡道与楼梯 · 刀刃与斧头 · 螺丝钉</span>
+            <p>找出倾斜的面：它给使用者带来什么便利？</p>
+          </div>
+          <button id="revealButton" class="reveal-button" type="button">学生表达后 · 揭示研讨提示</button>
+          <div id="revealBox" class="reveal-box" hidden aria-live="polite"></div>
+        </div>
+        <div class="panel-bottom note-bottom">模型标注：结构示意，非真实过程录像</div>
+      </aside>
+    </main>
+
+    <footer class="footer">
+      <span id="footerStep">01 / 情境与预测</span>
+      <span>真实实验优先 · 数据来自学生测量 · 教师控制结论</span>
+      <span>拖动旋转 · 滚轮缩放 · 支持触摸</span>
+      <span class="author">课件制作：小胡老师</span>
+    </footer>
+  </div>
+
+  <dialog id="dataDialog" aria-labelledby="dialogTitle">
+    <div class="dialog-head"><div><small>项目一 · 真实测量记录</small><h2 id="dialogTitle">录入各组平均拉力</h2></div><button id="closeDataButton" type="button" aria-label="关闭">×</button></div>
+    <p class="dialog-intro">学生先在纸质日志中完成每种情况的三次测量并计算本组平均值。这里仅录入真实的本组平均拉力（N）。默认各组器材和操作条件一致；条件明显不同的小组可取消参与全班平均，其记录仍显示为数据点。本次标签页临时保存已提交的数据。</p>
+    <div class="table-scroll"><table><thead><tr><th>小组</th><th>直接提起<br>平均 N</th><th>短斜面<br>平均 N</th><th>中斜面<br>平均 N</th><th>长斜面<br>平均 N</th><th>计入全班平均</th><th></th></tr></thead><tbody id="dataRows"></tbody></table></div>
+    <div class="dialog-actions"><button id="addGroupButton" class="quiet-button" type="button">添加小组</button><span id="dataValidation" role="status"></span><button id="saveDataButton" class="save-button" type="button">保存并展示</button></div>
+  </dialog>
+
+  <script>/* BUILD_JS */</script>
+</body>
+</html>

@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>物理探索：空气的质量与天平测量</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+    }
+
+    body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 25%, #1e293b 0%, #0f172a 100%);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: #f8fafc;
+    }
+
+    header {
+      position: absolute;
+      top: 16px;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    h1 {
+      font-size: 2.1rem;
+      font-weight: 800;
+      letter-spacing: 2px;
+      background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+
+    .tips {
+      font-size: 0.95rem;
+      color: #94a3b8;
+      margin-top: 4px;
+    }
+
+    #canvas-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      cursor: grab;
+    }
+    #canvas-container:active {
+      cursor: grabbing;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* 平衡状态通知横幅 */
+    #balance-alert {
+      position: absolute;
+      top: 88px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px) scale(0.9);
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(5, 150, 105, 0.95));
+      color: #ffffff;
+      padding: 12px 36px;
+      border-radius: 40px;
+      font-size: 1.45rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      box-shadow: 0 8px 30px rgba(16, 185, 129, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      z-index: 20;
+    }
+    #balance-alert.active {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0) scale(1);
+    }
+
+    /* 希沃大屏状态悬浮栏 */
+    .status-hud {
+      position: absolute;
+      top: 86px;
+      left: 36px;
+      background: rgba(15, 23, 42, 0.82);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      padding: 12px 20px;
+      border-radius: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      backdrop-filter: blur(8px);
+      z-index: 10;
+      pointer-events: none;
+    }
+    .status-row {
+      font-size: 0.95rem;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .status-val {
+      font-weight: bold;
+      color: #38bdf8;
+      font-size: 1.15rem;
+      font-family: "Impact", sans-serif;
+    }
+
+    /* 底部大触控按键区 */
+    .dock {
+      position: absolute;
+      bottom: 24px;
+      left: 0;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding: 0 40px;
+      z-index: 15;
+      pointer-events: none;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 14px;
+      background: rgba(15, 23, 42, 0.78);
+      padding: 10px 16px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      pointer-events: auto;
+    }
+
+    .btn {
+      outline: none;
+      border: none;
+      padding: 14px 22px;
+      font-size: 1.15rem;
+      font-weight: 700;
+      border-radius: 14px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: transform 0.1s, box-shadow 0.2s, filter 0.2s;
+      color: #ffffff;
+    }
+    .btn:active {
+      transform: scale(0.94);
+    }
+
+    .btn-pump {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      box-shadow: 0 6px 20px rgba(2, 132, 199, 0.4);
+    }
+    .btn-switch {
+      background: linear-gradient(135deg, #475569, #334155);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .btn-bean {
+      background: linear-gradient(135deg, #eab308, #ca8a04);
+      color: #422006;
+      box-shadow: 0 6px 20px rgba(234, 179, 8, 0.35);
+    }
+    .btn-clear {
+      background: rgba(255, 255, 255, 0.1);
+      color: #cbd5e1;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>精密托盘天平探究实验</h1>
+    <div class="tips">💡 支持手指在大屏上直接挑动托盘横梁 | 观察分度盘指针与气压变化</div>
+  </header>
+
+  <div id="balance-alert">⚖️ 天平已恢复平衡 (指针归零)</div>
+
+  <div class="status-hud">
+    <div class="status-row">气阀连通：<span class="status-val" id="hud-pump-side">右侧桶</span></div>
+    <div class="status-row">天平分度：<span class="status-val" id="hud-needle-read">0.0 (平衡)</span></div>
+    <div class="status-row">左托盘配重：<span class="status-val" id="hud-left-count">0 粒绿豆</span></div>
+  </div>
+
+  <div id="canvas-container">
+    <canvas id="balanceCanvas"></canvas>
+  </div>
+
+  <div class="dock">
+    <div class="btn-group">
+      <button class="btn btn-bean" onclick="addBean(1)">➕ 放 1 粒绿豆</button>
+      <button class="btn btn-bean" onclick="addBean(2)">➕ 放 2 粒</button>
+      <button class="btn btn-bean" onclick="addBean(5)">➕ 放 5 粒</button>
+      <button class="btn btn-clear" onclick="clearBeans()">清空绿豆</button>
+    </div>
+
+    <div class="btn-group">
+      <button class="btn btn-switch" onclick="togglePumpSide()">🔄 切换气管到<span id="switch-target-text">左侧</span></button>
+      <button class="btn btn-pump" id="pumpBtn">💨 按住 / 快速下压充气</button>
+      <button class="btn btn-clear" onclick="resetExperiment()">重置</button>
+    </div>
+  </div>
+
+  <script>
+    /* 1. 音效系统 */
+    class LabSoundEngine {
+      constructor() {
+        this.ctx = null;
+        this.hissNode = null;
+        this.hissGain = null;
+      }
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioContext();
+        }
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+      }
+      startAirFlow() {
+        this.init();
+        if (this.hissNode) return;
+        const ctx = this.ctx;
+        const bufferSize = ctx.sampleRate * 0.5;
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+        this.hissNode = ctx.createBufferSource();
+        this.hissNode.buffer = buffer;
+        this.hissNode.loop = true;
+
+        const filter = ctx.createBiquadFilter();
+        filter.type = "bandpass";
+        filter.frequency.value = 1100;
+        filter.Q.value = 4.0;
+
+        this.hissGain = ctx.createGain();
+        this.hissGain.gain.setValueAtTime(0.01, ctx.currentTime);
+        this.hissGain.gain.linearRampToValueAtTime(0.35, ctx.currentTime + 0.08);
+
+        this.hissNode.connect(filter);
+        filter.connect(this.hissGain);
+        this.hissGain.connect(ctx.destination);
+        this.hissNode.start();
+      }
+      stopAirFlow() {
+        if (this.hissGain && this.ctx) {
+          this.hissGain.gain.linearRampToValueAtTime(0.001, this.ctx.currentTime + 0.1);
+          setTimeout(() => {
+            if (this.hissNode) {
+              this.hissNode.stop();
+              this.hissNode.disconnect();
+              this.hissNode = null;
+            }
+          }, 110);
+        }
+      }
+      playBeanClink() {
+        this.init();
+        const ctx = this.ctx;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        const freq = 1750 + Math.random() * 600;
+        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(320, ctx.currentTime + 0.09);
+
+        gain.gain.setValueAtTime(0.28, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.09);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.1);
+      }
+      playBalanceChime() {
+        this.init();
+        const ctx = this.ctx;
+        [523.25, 659.25, 783.99, 1046.5].forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = "triangle";
+          osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.12);
+          gain.gain.setValueAtTime(0.001, ctx.currentTime + idx * 0.12);
+          gain.gain.linearRampToValueAtTime(0.2, ctx.currentTime + idx * 0.12 + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.12 + 0.5);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(ctx.currentTime + idx * 0.12);
+          osc.stop(ctx.currentTime + idx * 0.12 + 0.55);
+        });
+      }
+    }
+    const sound = new LabSoundEngine();
+
+    /* 2. 物理与实验变量 */
+    const canvas = document.getElementById('balanceCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let W = window.innerWidth;
+    let H = window.innerHeight;
+    function handleResize() {
+      const dpr = window.devicePixelRatio || 1;
+      W = window.innerWidth;
+      H = window.innerHeight;
+      canvas.width = W * dpr;
+      canvas.height = H * dpr;
+      ctx.scale(dpr, dpr);
+    }
+    window.addEventListener('resize', handleResize);
+    handleResize();
+
+    let pumpTargetSide = 'right';
+    let leftAddedMass = 0;
+    let rightAddedMass = 0;
+    let leftBeans = [];
+    let rightBeans = [];
+
+    // 充气控制：pumpHandleProgress 范围严格为 [0, 1]
+    // 0 = 把手抽起（最顶端）
+    // 1 = 把手完全下压至气筒顶盖缓冲圈处（机械止动）
+    let isPumping = false;
+    let pumpHandleProgress = 0;
+    let pumpPressurePSI = 0;
+    let injectedAirVolume = 0;
+    let airParticles = [];
+
+    const BEAM_SPAN = 310;
+    let beamAngle = 0;
+    let beamAngularVel = 0.012;
+    let leftPanAngle = 0;
+    let rightPanAngle = 0;
+
+    let isDragging = false;
+    let dragTarget = null;
+    let lastDragY = 0;
+    let balancedAnnounced = false;
+
+    /* 3. 交互逻辑 */
+    function togglePumpSide() {
+      pumpTargetSide = pumpTargetSide === 'right' ? 'left' : 'right';
+      document.getElementById('hud-pump-side').innerText = pumpTargetSide === 'right' ? '右侧桶' : '左侧桶';
+      document.getElementById('switch-target-text').innerText = pumpTargetSide === 'right' ? '左侧' : '右侧';
+      balancedAnnounced = false;
+    }
+
+    function addBean(count) {
+      const targetSide = pumpTargetSide === 'right' ? 'left' : 'right';
+      for (let i = 0; i < count; i++) {
+        setTimeout(() => {
+          sound.playBeanClink();
+          const beanMass = 0.05 + (Math.random() - 0.5) * 0.005;
+          const beanObj = {
+            x: (Math.random() - 0.5) * 60,
+            y: -220,
+            vy: 3 + Math.random() * 2,
+            vx: (Math.random() - 0.5) * 1.5,
+            rot: Math.random() * Math.PI,
+            rotVel: (Math.random() - 0.5) * 0.2,
+            landed: false
+          };
+          if (targetSide === 'left') {
+            leftAddedMass += beanMass;
+            leftBeans.push(beanObj);
+          } else {
+            rightAddedMass += beanMass;
+            rightBeans.push(beanObj);
+          }
+          updateStatusHUD();
+        }, i * 90);
+      }
+    }
+
+    function clearBeans() {
+      leftBeans = [];
+      rightBeans = [];
+      leftAddedMass = 0;
+      rightAddedMass = pumpTargetSide === 'right' ? injectedAirVolume : 0;
+      if (pumpTargetSide === 'left') leftAddedMass = injectedAirVolume;
+      balancedAnnounced = false;
+      document.getElementById('balance-alert').classList.remove('active');
+      updateStatusHUD();
+    }
+
+    function resetExperiment() {
+      clearBeans();
+      injectedAirVolume = 0;
+      leftAddedMass = 0;
+      rightAddedMass = 0;
+      pumpPressurePSI = 0;
+      beamAngle = 0.02;
+      beamAngularVel = 0;
+      balancedAnnounced = false;
+      document.getElementById('balance-alert').classList.remove('active');
+      updateStatusHUD();
+    }
+
+    function updateStatusHUD() {
+      document.getElementById('hud-left-count').innerText = 
+        (pumpTargetSide === 'right' ? leftBeans.length : rightBeans.length) + ' 粒绿豆';
+    }
+
+    const pumpBtn = document.getElementById('pumpBtn');
+    pumpBtn.addEventListener('pointerdown', () => { isPumping = true; sound.startAirFlow(); });
+    window.addEventListener('pointerup', () => { 
+      if (isPumping) {
+        isPumping = false; 
+        sound.stopAirFlow();
+      }
+    });
+
+    /* 4. 触控拾取与拨动 */
+    const container = document.getElementById('canvas-container');
+    container.addEventListener('pointerdown', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const px = e.clientX - rect.left;
+      const py = e.clientY - rect.top;
+
+      const cx = W / 2;
+      const cy = H * 0.60;
+      const leftPanPos = getLeftPanCenter(cx, cy);
+      const rightPanPos = getRightPanCenter(cx, cy);
+
+      const distL = Math.hypot(px - leftPanPos.x, py - leftPanPos.y);
+      const distR = Math.hypot(px - rightPanPos.x, py - rightPanPos.y);
+
+      if (distL < 90) {
+        isDragging = true;
+        dragTarget = 'leftPan';
+        lastDragY = py;
+      } else if (distR < 90) {
+        isDragging = true;
+        dragTarget = 'rightPan';
+        lastDragY = py;
+      } else if (Math.abs(px - cx) < BEAM_SPAN && Math.abs(py - (cy - 240)) < 40) {
+        isDragging = true;
+        dragTarget = 'beam';
+        lastDragY = py;
+      }
+    });
+
+    window.addEventListener('pointermove', (e) => {
+      if (!isDragging) return;
+      const rect = canvas.getBoundingClientRect();
+      const py = e.clientY - rect.top;
+      const dy = py - lastDragY;
+      lastDragY = py;
+
+      if (dragTarget === 'leftPan') {
+        beamAngle += dy * 0.0018;
+        leftPanAngle += dy * 0.008;
+      } else if (dragTarget === 'rightPan') {
+        beamAngle -= dy * 0.0018;
+        rightPanAngle += dy * 0.008;
+      } else if (dragTarget === 'beam') {
+        beamAngle += dy * 0.0012;
+      }
+
+      beamAngle = Math.max(-0.16, Math.min(0.16, beamAngle));
+      beamAngularVel = 0;
+    });
+
+    window.addEventListener('pointerup', () => {
+      if (isDragging) {
+        isDragging = false;
+        beamAngularVel = (Math.random() - 0.5) * 0.005;
+        dragTarget = null;
+      }
+    });
+
+    /* 5. 渲染循环 */
+    function render() {
+      requestAnimationFrame(render);
+      ctx.clearRect(0, 0, W, H);
+
+      const cx = W / 2;
+      const cy = H * 0.60;
+
+      // 活塞线性运动：严格约束在 [0, 1] 内
+      if (isPumping) {
+        pumpHandleProgress = Math.min(1.0, pumpHandleProgress + 0.07);
+        pumpPressurePSI = Math.min(40, pumpPressurePSI + 0.9);
+        const dMass = 0.0028;
+        injectedAirVolume += dMass;
+        if (pumpTargetSide === 'right') rightAddedMass += dMass;
+        else leftAddedMass += dMass;
+
+        const targetX = pumpTargetSide === 'right' ? getRightPanCenter(cx, cy).x : getLeftPanCenter(cx, cy).x;
+        const targetY = (cy - 240 + 250) - 100;
+        for (let i = 0; i < 2; i++) {
+          airParticles.push({
+            x: targetX + (Math.random() - 0.5) * 8,
+            y: targetY,
+            vx: (Math.random() - 0.5) * 2.5,
+            vy: Math.random() * 3.5 + 2,
+            r: Math.random() * 3 + 2,
+            alpha: 0.9
+          });
+        }
+      } else {
+        // 弹簧与气压复位
+        pumpHandleProgress = Math.max(0, pumpHandleProgress - 0.04);
+        pumpPressurePSI = Math.max(injectedAirVolume * 15, pumpPressurePSI - 0.4);
+      }
+
+      // 天平物理动力学
+      if (!isDragging) {
+        const massDelta = rightAddedMass - leftAddedMass; 
+        const torque = massDelta * 0.019 - Math.sin(beamAngle) * 0.055;
+        const damping = 0.968;
+
+        beamAngularVel += torque;
+        beamAngularVel *= damping;
+        beamAngle += beamAngularVel;
+
+        if (beamAngle > 0.16) { beamAngle = 0.16; beamAngularVel = 0; }
+        if (beamAngle < -0.16) { beamAngle = -0.16; beamAngularVel = 0; }
+      }
+
+      leftPanAngle *= 0.94;
+      rightPanAngle *= 0.94;
+
+      const divisionVal = (beamAngle / 0.16) * 5.0;
+      const hudNeedle = document.getElementById('hud-needle-read');
+      if (Math.abs(divisionVal) < 0.15) {
+        hudNeedle.innerText = "0.0 (刻度居中)";
+        hudNeedle.style.color = "#10b981";
+      } else if (divisionVal > 0) {
+        hudNeedle.innerText = `+${divisionVal.toFixed(1)} (右沉)`;
+        hudNeedle.style.color = "#f43f5e";
+      } else {
+        hudNeedle.innerText = `${divisionVal.toFixed(1)} (左沉)`;
+        hudNeedle.style.color = "#eab308";
+      }
+
+      // 达成平衡判定
+      const isSettled = Math.abs(beamAngle) < 0.012 && Math.abs(beamAngularVel) < 0.001;
+      const hasExperimentLoads = (leftAddedMass > 0.04 || rightAddedMass > 0.04);
+      const isMassBalanced = Math.abs(rightAddedMass - leftAddedMass) < 0.025;
+
+      const banner = document.getElementById('balance-alert');
+      if (isSettled && hasExperimentLoads && isMassBalanced) {
+        if (!balancedAnnounced) {
+          balancedAnnounced = true;
+          banner.classList.add('active');
+          sound.playBalanceChime();
+        }
+      } else {
+        banner.classList.remove('active');
+        balancedAnnounced = false;
+      }
+
+      drawDeskSurface(cx, cy);
+      drawPrecisionStand(cx, cy);
+
+      ctx.save();
+      ctx.translate(cx, cy - 240);
+      ctx.rotate(beamAngle);
+      drawStandardBeam();
+      ctx.restore();
+
+      const leftHang = {
+        x: cx - Math.cos(beamAngle) * BEAM_SPAN,
+        y: (cy - 240) - Math.sin(beamAngle) * BEAM_SPAN
+      };
+      const rightHang = {
+        x: cx + Math.cos(beamAngle) * BEAM_SPAN,
+        y: (cy - 240) + Math.sin(beamAngle) * BEAM_SPAN
+      };
+
+      drawPanAndContents(leftHang.x, leftHang.y, 'left', leftPanAngle);
+      drawPanAndContents(rightHang.x, rightHang.y, 'right', rightPanAngle);
+
+      // 绘制完全消除穿模的精密打气筒
+      drawPneumaticPumpSystem(cx, cy, leftHang, rightHang);
+      drawAirParticles();
+    }
+
+    function getLeftPanCenter(cx, cy) {
+      return {
+        x: cx - Math.cos(beamAngle) * BEAM_SPAN,
+        y: (cy - 240) - Math.sin(beamAngle) * BEAM_SPAN + 250
+      };
+    }
+    function getRightPanCenter(cx, cy) {
+      return {
+        x: cx + Math.cos(beamAngle) * BEAM_SPAN,
+        y: (cy - 240) + Math.sin(beamAngle) * BEAM_SPAN + 250
+      };
+    }
+
+    function drawDeskSurface(cx, cy) {
+      const grad = ctx.createLinearGradient(0, cy + 90, 0, H);
+      grad.addColorStop(0, '#1e293b');
+      grad.addColorStop(0.12, '#0f172a');
+      grad.addColorStop(1, '#020617');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, cy + 90, W, H - (cy + 90));
+
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.25)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(0, cy + 90);
+      ctx.lineTo(W, cy + 90);
+      ctx.stroke();
+
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+      ctx.beginPath();
+      ctx.ellipse(cx, cy + 92, 190, 20, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function drawPrecisionStand(cx, cy) {
+      const baseGrad = ctx.createLinearGradient(cx - 160, 0, cx + 160, 0);
+      baseGrad.addColorStop(0, '#334155');
+      baseGrad.addColorStop(0.3, '#64748b');
+      baseGrad.addColorStop(0.7, '#475569');
+      baseGrad.addColorStop(1, '#1e293b');
+      ctx.fillStyle = baseGrad;
+      ctx.beginPath();
+      ctx.roundRect(cx - 150, cy + 55, 300, 36, 8);
+      ctx.fill();
+
+      ctx.fillStyle = '#b45309';
+      ctx.fillRect(cx - 130, cy + 87, 34, 8);
+      ctx.fillRect(cx + 96, cy + 87, 34, 8);
+
+      ctx.fillStyle = '#22c55e';
+      ctx.beginPath();
+      ctx.arc(cx + 105, cy + 66, 7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(cx + 104, cy + 65, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      const colGrad = ctx.createLinearGradient(cx - 20, 0, cx + 20, 0);
+      colGrad.addColorStop(0, '#475569');
+      colGrad.addColorStop(0.35, '#f8fafc');
+      colGrad.addColorStop(0.65, '#cbd5e0');
+      colGrad.addColorStop(1, '#334155');
+      ctx.fillStyle = colGrad;
+      ctx.fillRect(cx - 16, cy - 240, 32, 300);
+
+      ctx.fillStyle = '#d97706';
+      ctx.fillRect(cx - 20, cy - 80, 40, 10);
+      ctx.fillRect(cx - 20, cy + 30, 40, 10);
+
+      drawDialMeter(cx, cy - 110);
+    }
+
+    function drawDialMeter(cx, cy) {
+      ctx.save();
+      ctx.translate(cx, cy);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.strokeStyle = '#b45309';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(0, -125, 175, 0.43 * Math.PI, 0.57 * Math.PI, false);
+      ctx.lineTo(24, -15);
+      ctx.lineTo(-24, -15);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      for (let i = -5; i <= 5; i++) {
+        const rad = Math.PI * 0.5 + (i * 0.024);
+        const r1 = 44;
+        const r2 = i === 0 ? 66 : (Math.abs(i) % 5 === 0 ? 62 : 54);
+
+        const x1 = Math.cos(rad) * r1;
+        const y1 = Math.sin(rad) * r1 - 92;
+        const x2 = Math.cos(rad) * r2;
+        const y2 = Math.sin(rad) * r2 - 92;
+
+        ctx.strokeStyle = i === 0 ? '#dc2626' : '#1e293b';
+        ctx.lineWidth = i === 0 ? 2.5 : 1.5;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+
+        if (Math.abs(i) % 1 === 0) {
+          ctx.fillStyle = i === 0 ? '#dc2626' : '#475569';
+          ctx.font = 'bold 11px sans-serif';
+          ctx.textAlign = 'center';
+          const tx = Math.cos(rad) * (r2 + 10);
+          const ty = Math.sin(rad) * (r2 + 10) - 88;
+          ctx.fillText(Math.abs(i).toString(), tx, ty);
+        }
+      }
+
+      ctx.fillStyle = '#78350f';
+      ctx.beginPath();
+      ctx.arc(0, -130, 9, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    function drawStandardBeam() {
+      const beamGrad = ctx.createLinearGradient(0, -14, 0, 14);
+      beamGrad.addColorStop(0, '#fde047');
+      beamGrad.addColorStop(0.4, '#eab308');
+      beamGrad.addColorStop(1, '#854d0e');
+      ctx.fillStyle = beamGrad;
+      ctx.strokeStyle = '#713f12';
+      ctx.lineWidth = 1.8;
+
+      ctx.beginPath();
+      ctx.moveTo(-BEAM_SPAN - 12, 0);
+      ctx.lineTo(-BEAM_SPAN, -14);
+      ctx.lineTo(BEAM_SPAN, -14);
+      ctx.lineTo(BEAM_SPAN + 12, 0);
+      ctx.lineTo(BEAM_SPAN, 14);
+      ctx.lineTo(-BEAM_SPAN, 14);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.fillRect(-180, -13, 360, 9);
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 1;
+      for (let g = 0; g <= 10; g++) {
+        const gx = -180 + g * 36;
+        ctx.beginPath();
+        ctx.moveTo(gx, -13);
+        ctx.lineTo(gx, -6);
+        ctx.stroke();
+      }
+
+      ctx.fillStyle = '#0284c7';
+      ctx.fillRect(-184, -15, 8, 13);
+
+      ctx.fillStyle = '#d97706';
+      ctx.fillRect(-BEAM_SPAN - 22, -6, 12, 12);
+      ctx.fillRect(BEAM_SPAN + 10, -6, 12, 12);
+
+      const pGrad = ctx.createLinearGradient(-3, 0, 3, 0);
+      pGrad.addColorStop(0, '#dc2626');
+      pGrad.addColorStop(0.5, '#fca5a5');
+      pGrad.addColorStop(1, '#991b1b');
+      ctx.fillStyle = pGrad;
+
+      ctx.beginPath();
+      ctx.moveTo(-3.5, 0);
+      ctx.lineTo(0, 192);
+      ctx.lineTo(3.5, 0);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = '#dc2626';
+      ctx.beginPath();
+      ctx.arc(0, 192, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function drawPanAndContents(hangX, hangY, side, swingAngle) {
+      const PAN_H = 250;
+      const panY = hangY + PAN_H;
+
+      ctx.save();
+      ctx.translate(hangX, hangY);
+      ctx.rotate(swingAngle);
+      ctx.translate(-hangX, -hangY);
+
+      ctx.strokeStyle = 'rgba(234, 179, 8, 0.85)';
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.moveTo(hangX, hangY);
+      ctx.lineTo(hangX - 62, panY);
+      ctx.moveTo(hangX, hangY);
+      ctx.lineTo(hangX, panY - 8);
+      ctx.moveTo(hangX, hangY);
+      ctx.lineTo(hangX + 62, panY);
+      ctx.stroke();
+
+      const trayGrad = ctx.createLinearGradient(hangX - 75, 0, hangX + 75, 0);
+      trayGrad.addColorStop(0, '#64748b');
+      trayGrad.addColorStop(0.4, '#f8fafc');
+      trayGrad.addColorStop(1, '#475569');
+      ctx.fillStyle = trayGrad;
+      ctx.beginPath();
+      ctx.ellipse(hangX, panY, 75, 15, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#94a3b8';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      const baseY = panY - 6;
+      const isConnectedToHose = (side === pumpTargetSide);
+      drawSealedCanister(hangX, baseY, isConnectedToHose);
+      drawRealisticBall(hangX, baseY - 48, 38);
+
+      const beansList = (side === 'left') ? leftBeans : rightBeans;
+      drawBeansOnTray(hangX, baseY, beansList);
+
+      ctx.restore();
+    }
+
+    function drawSealedCanister(x, y, hasNozzle) {
+      const w = 84;
+      const h = 100;
+
+      const aGrad = ctx.createLinearGradient(x - w/2, 0, x + w/2, 0);
+      aGrad.addColorStop(0, 'rgba(186, 230, 253, 0.35)');
+      aGrad.addColorStop(0.25, 'rgba(255, 255, 255, 0.6)');
+      aGrad.addColorStop(0.5, 'rgba(186, 230, 253, 0.12)');
+      aGrad.addColorStop(0.8, 'rgba(186, 230, 253, 0.25)');
+      aGrad.addColorStop(1, 'rgba(125, 211, 252, 0.4)');
+
+      ctx.fillStyle = aGrad;
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.roundRect(x - w/2, y - h, w, h, 6);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#1e293b';
+      ctx.beginPath();
+      ctx.roundRect(x - w/2 - 2, y - h - 10, w + 4, 12, 3);
+      ctx.fill();
+
+      if (hasNozzle) {
+        ctx.fillStyle = '#eab308';
+        ctx.fillRect(x - 6, y - h - 20, 12, 11);
+        ctx.fillStyle = '#0f172a';
+        ctx.beginPath();
+        ctx.arc(x, y - h - 20, 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function drawRealisticBall(x, y, r) {
+      const grad = ctx.createRadialGradient(x - r*0.35, y - r*0.35, r*0.1, x, y, r);
+      grad.addColorStop(0, '#fb923c');
+      grad.addColorStop(0.6, '#ea580c');
+      grad.addColorStop(1, '#9a3412');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = 'rgba(67, 20, 7, 0.45)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(x, y, r, -0.3, 0.8 * Math.PI);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.ellipse(x, y, r * 0.9, r * 0.35, 0.35, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    function drawBeansOnTray(trayX, trayY, list) {
+      for (let i = 0; i < list.length; i++) {
+        const b = list[i];
+        if (!b.landed) {
+          b.y += b.vy;
+          b.vy += 0.45;
+          b.x += b.vx;
+          b.rot += b.rotVel;
+          if (b.y >= -12) {
+            b.y = -12 + (Math.random() * 4 - 2);
+            b.landed = true;
+          }
+        }
+
+        ctx.save();
+        ctx.translate(trayX + b.x, trayY + b.y);
+        ctx.rotate(b.rot);
+
+        const beanGrad = ctx.createRadialGradient(-1.5, -1.5, 1, 0, 0, 7);
+        beanGrad.addColorStop(0, '#86efac');
+        beanGrad.addColorStop(0.5, '#22c55e');
+        beanGrad.addColorStop(1, '#14532d');
+        ctx.fillStyle = beanGrad;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 7, 4.8, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#f0fdf4';
+        ctx.beginPath();
+        ctx.ellipse(0, -1, 2.2, 0.8, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+      }
+    }
+
+    /* 6. 重构打气筒渲染：彻底解决穿模与连杆错位问题 */
+    function drawPneumaticPumpSystem(cx, cy, leftHang, rightHang) {
+      const targetX = pumpTargetSide === 'right' ? rightHang.x : leftHang.x;
+      const targetY = (pumpTargetSide === 'right' ? rightHang.y : leftHang.y) + 250 - 6 - 100 - 20;
+
+      const pumpX = Math.min(W - 100, cx + BEAM_SPAN + 180);
+      const pumpY = cy + 90;
+
+      // 导气管
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = 5;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(targetX, targetY);
+      
+      const ctrl1X = pumpTargetSide === 'right' ? targetX + 40 : targetX - 50;
+      const ctrl1Y = targetY - 60;
+      const ctrl2X = pumpX - 50;
+      const ctrl2Y = pumpY - 40;
+
+      ctx.bezierCurveTo(ctrl1X, ctrl1Y, ctrl2X, ctrl2Y, pumpX - 12, pumpY - 26);
+      ctx.stroke();
+
+      ctx.fillStyle = '#eab308';
+      ctx.fillRect(targetX - 4, targetY - 4, 8, 8);
+
+      ctx.save();
+      ctx.translate(pumpX, pumpY);
+
+      // 铸铁底座与脚踏板
+      ctx.fillStyle = '#1e293b';
+      ctx.beginPath();
+      ctx.roundRect(-36, -8, 72, 12, 4);
+      ctx.fill();
+
+      // 红色金属泵筒
+      const barrelH = 175;
+      const barrelTop = -barrelH; // 筒身硬顶界限坐标
+
+      const pGrad = ctx.createLinearGradient(-14, 0, 14, 0);
+      pGrad.addColorStop(0, '#991b1b');
+      pGrad.addColorStop(0.3, '#f87171');
+      pGrad.addColorStop(0.7, '#dc2626');
+      pGrad.addColorStop(1, '#7f1d1d');
+      ctx.fillStyle = pGrad;
+      ctx.fillRect(-14, barrelTop, 28, barrelH);
+
+      // 气压表
+      drawPressureGauge(16, barrelTop + 85, pumpPressurePSI);
+
+      // 【核心物理限位修复】
+      // 最大下压行程为 75 像素
+      const maxStroke = 75;
+      // 把手下缘在压到最底时，硬止挡在顶盖防撞圈上（barrelTop - 12），绝不穿模！
+      const handleMinY = barrelTop - 12;            // 最低限位（压到底）
+      const handleMaxY = handleMinY - maxStroke;      // 最高限位（完全抽起）
+
+      // 当前把手下边缘 Y 坐标（在 handleMaxY 与 handleMinY 之间平滑运动）
+      const currentHandleBottomY = handleMaxY + pumpHandleProgress * maxStroke;
+
+      // 活塞杆：上端连接把手下缘，下端穿入筒身顶盖密封孔
+      // 杆长 = barrelTop - currentHandleBottomY，此值始终 >= 12px，永远不会反向穿模
+      const rodHeight = Math.max(0, barrelTop - currentHandleBottomY);
+      
+      // 绘制镀铬活塞拉杆
+      ctx.fillStyle = '#cbd5e1';
+      ctx.fillRect(-4, currentHandleBottomY, 8, rodHeight);
+      ctx.fillStyle = '#ffffff'; // 拉杆反光高光
+      ctx.fillRect(-2, currentHandleBottomY, 2, rodHeight);
+
+      // 绘制外筒顶端金属端盖与橡胶防撞减震环
+      ctx.fillStyle = '#334155';
+      ctx.beginPath();
+      ctx.roundRect(-16, barrelTop - 4, 32, 6, 2);
+      ctx.fill();
+      ctx.fillStyle = '#0f172a'; // 橡胶垫圈止挡
+      ctx.fillRect(-14, barrelTop - 7, 28, 3);
+
+      // 绘制木质工字手柄（随 currentHandleBottomY 联动，绝不越过 barrelTop）
+      const handleThickness = 14;
+      const handleCenterY = currentHandleBottomY - handleThickness / 2;
+
+      // 手柄与拉杆连接的金属法兰销轴
+      ctx.fillStyle = '#64748b';
+      ctx.fillRect(-7, currentHandleBottomY - 4, 14, 5);
+
+      // 弧度工字握把
+      const hGrad = ctx.createLinearGradient(-48, handleCenterY, 48, handleCenterY);
+      hGrad.addColorStop(0, '#78350f');
+      hGrad.addColorStop(0.5, '#fde047');
+      hGrad.addColorStop(1, '#78350f');
+      ctx.fillStyle = hGrad;
+      ctx.beginPath();
+      ctx.roundRect(-46, handleCenterY - handleThickness/2, 92, handleThickness, 6);
+      ctx.fill();
+
+      // 两侧橡胶防滑握把套
+      ctx.fillStyle = '#1e293b';
+      ctx.beginPath();
+      ctx.roundRect(-46, handleCenterY - handleThickness/2 - 1, 16, handleThickness + 2, 4);
+      ctx.roundRect(30, handleCenterY - handleThickness/2 - 1, 16, handleThickness + 2, 4);
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    function drawPressureGauge(gx, gy, psi) {
+      ctx.save();
+      ctx.translate(gx, gy);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(0, 0, 16, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      for (let i = 0; i <= 6; i++) {
+        const rad = 0.75 * Math.PI + (i * 0.25 * Math.PI);
+        const x1 = Math.cos(rad) * 9;
+        const y1 = Math.sin(rad) * 9;
+        const x2 = Math.cos(rad) * 13;
+        const y2 = Math.sin(rad) * 13;
+        ctx.strokeStyle = i > 4 ? '#ef4444' : '#64748b';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+      }
+
+      const needleAngle = 0.75 * Math.PI + (Math.min(45, psi) / 45) * (1.35 * Math.PI);
+      ctx.strokeStyle = '#dc2626';
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(Math.cos(needleAngle) * 11, Math.sin(needleAngle) * 11);
+      ctx.stroke();
+
+      ctx.fillStyle = '#1e293b';
+      ctx.beginPath();
+      ctx.arc(0, 0, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    function drawAirParticles() {
+      for (let i = airParticles.length - 1; i >= 0; i--) {
+        const p = airParticles[i];
+        p.y += p.vy;
+        p.x += p.vx;
+        p.alpha -= 0.024;
+
+        ctx.fillStyle = `rgba(186, 230, 253, ${p.alpha})`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+
+        if (p.alpha <= 0) airParticles.splice(i, 1);
+      }
+    }
+
+    render();
+  </script>
+</body>
+</html>

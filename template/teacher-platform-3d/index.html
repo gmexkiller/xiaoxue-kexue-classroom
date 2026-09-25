@@ -1,0 +1,622 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#EAF1F0" />
+  <meta name="description" content="小胡老师 · 通用小学科学交互教学平台模板" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%231F7A73'/%3E%3Cpath d='M24 12h16v6h-3v11l11 19a8 8 0 0 1-7 12H23a8 8 0 0 1-7-12l11-19V18h-3z' fill='%23E9FFFA'/%3E%3Cpath d='M21 45h22l2 4a4 4 0 0 1-4 5H23a4 4 0 0 1-4-5z' fill='%232E91A0'/%3E%3C/svg%3E" />
+  <title>小学科学交互课堂 · 小胡老师</title>
+  <style>
+    :root {
+      --primary: #1F7A73;
+      --primary-soft: #DDEFEA;
+      --primary-deep: #14534F;
+      --accent: #2E91A0;
+      --accent-soft: #DDF1F3;
+      --bg: #EAF1F0;
+      --bg-deep: #DCE8E6;
+      --surface: #F8FBFA;
+      --surface-strong: #FFFFFF;
+      --text: #17313A;
+      --muted: #668087;
+      --muted-soft: #8EA2A5;
+      --line: #C9D9D6;
+      --line-strong: #AFC7C2;
+      --success: #3E8E72;
+      --warning: #BE8750;
+      --hot: #D4865F;
+      --cold: #4C9EB0;
+      --stage: #0D2730;
+      --stage-2: #123842;
+      --stage-line: #4E8186;
+      --shadow: 0 18px 45px rgba(33, 72, 73, .14);
+      --shadow-soft: 0 8px 22px rgba(33, 72, 73, .10);
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --font-body: "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", "Source Han Sans SC", sans-serif;
+      --font-mono: "Cascadia Mono", "Microsoft YaHei UI", monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-width: 320px; min-height: 100%; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      -webkit-font-smoothing: antialiased;
+    }
+    button { font: inherit; }
+    button, [role="button"] { -webkit-tap-highlight-color: transparent; }
+    button:focus-visible { outline: 3px solid rgba(46, 145, 160, .38); outline-offset: 3px; }
+    .icon-sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+    .icon { width: 17px; height: 17px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; }
+    .icon-lg { width: 23px; height: 23px; }
+
+    .app-shell {
+      position: relative;
+      isolation: isolate;
+      min-height: 100vh;
+      max-width: 1920px;
+      margin: 0 auto;
+      padding: 0 30px 12px;
+      overflow: hidden;
+    }
+    .app-shell::before,
+    .app-shell::after {
+      content: "";
+      position: fixed;
+      z-index: -1;
+      pointer-events: none;
+      border-radius: 50%;
+      filter: blur(2px);
+    }
+    .app-shell::before { width: 38vw; height: 38vw; top: -24vw; right: -10vw; background: rgba(77, 167, 161, .13); }
+    .app-shell::after { width: 32vw; height: 32vw; bottom: -22vw; left: -13vw; background: rgba(76, 158, 176, .10); }
+
+    .topbar {
+      min-height: 78px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+    .brand-block, .brand-mark, .top-actions, .live-state, .signature, .stage-button, .panel-title, .panel-foot, .tool-button, .play-state, .bottom-actions, .footer-left, .footer-right {
+      display: flex;
+      align-items: center;
+    }
+    .brand-block { gap: 12px; min-width: 0; }
+    .brand-mark {
+      width: 46px;
+      height: 46px;
+      justify-content: center;
+      color: #D9F4EC;
+      background: var(--primary-deep);
+      border: 1px solid #75B3A6;
+      border-radius: 14px;
+      box-shadow: 0 8px 18px rgba(31, 122, 115, .22);
+    }
+    .brand-copy { min-width: 0; }
+    .brand-copy strong { display: block; letter-spacing: .08em; font-size: 20px; line-height: 1.15; white-space: nowrap; }
+    .brand-copy strong span { color: var(--primary); font-family: var(--font-mono); letter-spacing: .13em; font-size: 10px; font-weight: 700; margin-left: 9px; }
+    .brand-copy small { display: block; margin-top: 6px; color: var(--muted); letter-spacing: .08em; font-size: 11px; white-space: nowrap; }
+    .top-actions { gap: 14px; flex-wrap: wrap; justify-content: flex-end; }
+    .live-state { color: var(--muted); gap: 7px; font-size: 11px; }
+    .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); box-shadow: 0 0 0 4px rgba(62, 142, 114, .12), 0 0 12px rgba(62, 142, 114, .55); }
+    .signature { color: var(--primary-deep); gap: 7px; padding-left: 14px; border-left: 1px solid var(--line); font-size: 12px; white-space: nowrap; }
+    .top-button, .stage-button, .tool-button, .bottom-button, .prediction-button, .reveal-button {
+      border: 1px solid var(--line-strong);
+      color: var(--text);
+      background: rgba(255, 255, 255, .64);
+      border-radius: 9px;
+      cursor: pointer;
+      transition: transform .18s ease, background .18s ease, border-color .18s ease, color .18s ease, box-shadow .18s ease;
+    }
+    .top-button:hover, .stage-button:hover, .tool-button:hover, .bottom-button:hover, .prediction-button:hover, .reveal-button:hover { transform: translateY(-1px); border-color: var(--primary); background: var(--surface-strong); }
+    .top-button { min-height: 36px; padding: 0 12px; display: inline-flex; align-items: center; gap: 7px; font-size: 11px; }
+    .top-button.selected { color: var(--primary-deep); background: var(--primary-soft); border-color: #80BDB2; }
+
+    .stage-nav { display: flex; gap: 8px; padding: 13px 0 0; }
+    .stage-button { flex: 1; min-width: 0; height: 43px; justify-content: center; gap: 9px; border-color: transparent; background: transparent; color: var(--muted); font-size: 12px; }
+    .stage-button .stage-index { color: var(--muted-soft); font: 11px var(--font-mono); }
+    .stage-button.active { color: var(--primary-deep); background: rgba(255, 255, 255, .78); border-color: var(--line); box-shadow: var(--shadow-soft); }
+    .stage-button.active .stage-index { color: var(--primary); }
+
+    .lesson-head { display: flex; align-items: end; justify-content: space-between; gap: 22px; padding: 24px 0 18px; }
+    .lesson-head .eyebrow { color: var(--primary); letter-spacing: .18em; font: 10px var(--font-mono); }
+    .lesson-head h1 { margin: 7px 0 0; letter-spacing: .04em; font-size: clamp(25px, 2.2vw, 34px); line-height: 1.15; }
+    .lesson-head p { margin: 8px 0 0; color: var(--muted); font-size: 12px; }
+    .lesson-tag { min-width: 205px; padding: 9px 0 9px 15px; border-left: 2px solid var(--primary); color: var(--muted); font-size: 11px; }
+    .lesson-tag strong { display: block; color: var(--text); margin-top: 4px; font-size: 13px; font-weight: 600; }
+
+    .workspace { display: grid; grid-template-columns: 214px minmax(0, 1fr) 292px; gap: 14px; height: clamp(385px, calc(100vh - 384px), 660px); }
+    .panel { min-width: 0; border: 1px solid var(--line); border-radius: var(--radius-lg); background: rgba(248, 251, 250, .78); box-shadow: var(--shadow-soft); overflow: hidden; }
+    .control-panel, .teacher-panel { display: flex; flex-direction: column; }
+    .panel-title { min-height: 54px; gap: 8px; padding: 0 16px; color: var(--text); border-bottom: 1px solid var(--line); font-size: 12px; font-weight: 700; }
+    .panel-title .panel-index { margin-left: auto; color: var(--muted-soft); font: 10px var(--font-mono); }
+    .panel-title .icon { color: var(--primary); }
+    .panel-body { padding: 17px 16px; overflow: auto; }
+    .section-label { margin: 0 0 9px; color: var(--muted); letter-spacing: .12em; font: 10px var(--font-mono); }
+    .control-list { display: grid; gap: 3px; }
+    .layer-control { width: 100%; padding: 9px 0; display: flex; justify-content: space-between; align-items: center; border: 0; background: transparent; color: var(--text); text-align: left; cursor: pointer; font-size: 12px; }
+    .layer-control small { display: block; margin-top: 4px; color: var(--muted-soft); letter-spacing: .08em; font: 8px var(--font-mono); }
+    .toggle { width: 30px; height: 17px; position: relative; flex: 0 0 auto; border-radius: 20px; background: #B7C8C5; transition: background .2s ease; }
+    .toggle::after { content: ""; position: absolute; left: 3px; top: 3px; width: 11px; height: 11px; border-radius: 50%; background: #F8FBFA; transition: left .2s ease; box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+    .layer-control[aria-checked="true"] .toggle { background: var(--primary); }
+    .layer-control[aria-checked="true"] .toggle::after { left: 16px; }
+    .separator { height: 1px; margin: 15px 0; background: var(--line); }
+    .view-grid { display: grid; gap: 7px; }
+    .tool-button { width: 100%; min-height: 35px; justify-content: flex-start; gap: 8px; padding: 0 10px; font-size: 11px; }
+    .tool-button.selected { color: var(--primary-deep); border-color: #85BDB5; background: var(--primary-soft); }
+    .animation-row { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+    .animation-row .tool-button { justify-content: center; }
+    .panel-foot { gap: 7px; margin-top: auto; min-height: 43px; padding: 0 15px; border-top: 1px solid var(--line); color: var(--muted); font: 9px var(--font-mono); letter-spacing: .08em; }
+    .panel-foot .live-dot { width: 5px; height: 5px; box-shadow: 0 0 8px rgba(62, 142, 114, .5); }
+
+    .stage-panel { position: relative; min-width: 0; border: 1px solid #24535B; border-radius: var(--radius-lg); background: var(--stage); box-shadow: 0 22px 48px rgba(16, 55, 61, .25); overflow: hidden; }
+    .stage-panel::before, .stage-panel::after { content: ""; z-index: 3; position: absolute; width: 26px; height: 26px; pointer-events: none; border-color: rgba(141, 221, 211, .62); }
+    .stage-panel::before { left: 10px; top: 10px; border-left: 2px solid; border-top: 2px solid; }
+    .stage-panel::after { right: 10px; bottom: 48px; border-right: 2px solid; border-bottom: 2px solid; }
+    #sceneCanvas { display: block; width: 100%; height: 100%; min-height: 0; touch-action: none; cursor: grab; }
+    #sceneCanvas:active { cursor: grabbing; }
+    .stage-heading, .stage-chip, .canvas-hint, .scene-label, .stage-legend { position: absolute; z-index: 4; pointer-events: none; }
+    .stage-heading { top: 18px; left: 22px; right: 22px; display: flex; justify-content: space-between; align-items: center; color: #D8ECEB; font-size: 11px; }
+    .stage-heading span { display: inline-flex; align-items: center; gap: 8px; }
+    .stage-heading i { width: 6px; height: 6px; border-radius: 50%; background: #8DE0D3; box-shadow: 0 0 10px #8DE0D3; }
+    .stage-heading small { color: #7FA2AA; letter-spacing: .18em; font: 9px var(--font-mono); }
+    .stage-chip { top: 53px; left: 22px; padding: 6px 9px; color: #A9DAD5; background: rgba(6, 26, 33, .52); border: 1px solid rgba(140, 210, 205, .24); border-radius: 5px; font-size: 10px; }
+    .canvas-hint { left: 22px; bottom: 56px; color: #8EAEB3; font-size: 9px; }
+    .scene-label { right: 22px; bottom: 55px; padding: 6px 9px; color: #D6EEEA; background: rgba(8, 29, 36, .58); border: 1px solid rgba(151, 218, 211, .24); border-radius: 5px; font-size: 10px; }
+    .stage-legend { left: 0; right: 0; bottom: 0; min-height: 42px; display: flex; align-items: center; gap: 15px; padding: 0 21px; color: #B8D1D0; background: rgba(7, 26, 33, .82); border-top: 1px solid rgba(127, 181, 181, .24); font-size: 9px; }
+    .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+    .legend-dot { width: 6px; height: 6px; border-radius: 50%; }
+    .legend-dot.teal { background: #76D9C8; box-shadow: 0 0 8px #76D9C8; }
+    .legend-dot.amber { background: #E1A56B; box-shadow: 0 0 8px #E1A56B; }
+    .stage-legend small { margin-left: auto; color: #78979D; }
+    .canvas-fallback { position: absolute; inset: 0; z-index: 8; display: none; place-items: center; padding: 28px; color: #D8ECEB; background: linear-gradient(145deg, #102D35, #0B2028); text-align: center; font-size: 13px; line-height: 1.8; }
+    .canvas-fallback.show { display: grid; }
+
+    .teacher-panel .panel-body { padding: 17px 16px; }
+    .question-kicker { color: var(--primary); letter-spacing: .15em; font: 10px var(--font-mono); }
+    .question-title { margin: 13px 0 8px; color: var(--text); font-size: 19px; line-height: 1.45; font-weight: 700; }
+    .question-desc { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.8; }
+    .prompt-box { margin-top: 17px; padding: 13px; border: 1px solid #BFDCD5; border-radius: 10px; background: rgba(221, 239, 234, .60); }
+    .prompt-box strong { display: block; color: var(--primary-deep); font-size: 12px; }
+    .prompt-box p { margin: 7px 0 11px; color: var(--text); font-size: 11px; line-height: 1.7; }
+    .prediction-list { display: grid; gap: 7px; }
+    .prediction-button { width: 100%; min-height: 34px; padding: 0 10px; text-align: left; font-size: 11px; }
+    .prediction-button.selected { color: var(--primary-deep); border-color: var(--primary); background: #F5FFFC; box-shadow: inset 3px 0 var(--primary); }
+    .prediction-status { min-height: 29px; margin-top: 9px; color: var(--success); font-size: 10px; line-height: 1.6; }
+    .reveal-button { width: 100%; min-height: 38px; display: inline-flex; justify-content: center; align-items: center; gap: 8px; color: #F4FFFC; background: var(--primary); border-color: var(--primary); font-size: 11px; font-weight: 700; }
+    .reveal-button:hover { color: #fff; background: var(--primary-deep); }
+    .result-box { margin-top: 13px; padding: 13px; border: 1px dashed var(--line-strong); border-radius: 10px; color: var(--muted); background: rgba(255,255,255,.56); font-size: 10px; line-height: 1.8; }
+    .result-box strong { display: block; margin-bottom: 5px; color: var(--text); font-size: 11px; }
+    .result-box[hidden] { display: none; }
+    .science-note { margin-top: 16px; padding-top: 13px; border-top: 1px solid var(--line); }
+    .science-note strong { color: var(--text); font-size: 11px; }
+    .science-note p { margin: 6px 0 0; color: var(--muted); font-size: 10px; line-height: 1.8; }
+
+    .bottom-bar { min-height: 66px; margin-top: 13px; padding: 11px 16px; display: flex; align-items: center; gap: 18px; border: 1px solid var(--line); border-radius: var(--radius-md); background: rgba(248, 251, 250, .88); box-shadow: var(--shadow-soft); }
+    .play-state { min-width: 155px; gap: 10px; }
+    .play-button { width: 36px; height: 36px; display: grid; place-items: center; padding: 0; color: #E9FFFA; background: var(--primary); border: 1px solid #66B7A8; border-radius: 50%; cursor: pointer; box-shadow: 0 5px 13px rgba(31, 122, 115, .20); }
+    .play-button:hover { background: var(--primary-deep); transform: translateY(-1px); }
+    .play-copy strong { display: block; font-size: 11px; }
+    .play-copy small { display: block; margin-top: 3px; color: var(--muted); font-size: 9px; }
+    .progress-line { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .progress-step { position: relative; min-width: 0; padding: 3px 0; display: flex; align-items: center; gap: 7px; border: 0; background: transparent; color: var(--muted); cursor: pointer; text-align: left; font-size: 10px; }
+    .progress-step::after { content: ""; position: absolute; height: 1px; left: 23px; right: -12px; top: 50%; background: var(--line); z-index: -1; }
+    .progress-step:last-child::after { display: none; }
+    .progress-step .progress-index { width: 22px; height: 22px; flex: 0 0 auto; display: grid; place-items: center; color: var(--muted); background: var(--bg-deep); border: 1px solid var(--line); border-radius: 50%; font: 9px var(--font-mono); }
+    .progress-step.active { color: var(--primary-deep); font-weight: 700; }
+    .progress-step.active .progress-index { color: #F1FFFB; background: var(--primary); border-color: var(--primary); }
+    .bottom-actions { gap: 7px; margin-left: auto; }
+    .bottom-button { min-height: 34px; padding: 0 10px; display: inline-flex; justify-content: center; align-items: center; gap: 6px; font-size: 10px; white-space: nowrap; }
+
+    footer { min-height: 38px; padding: 8px 0 0; display: flex; align-items: center; justify-content: space-between; color: var(--muted); font-size: 9px; }
+    .footer-left, .footer-right { gap: 9px; }
+    .footer-mark { color: var(--primary); font: 10px var(--font-mono); letter-spacing: .08em; }
+    .footer-divider { color: var(--line-strong); }
+
+    @media (max-width: 1120px) {
+      .workspace { grid-template-columns: 190px minmax(0, 1fr) 260px; }
+      .signature { display: none; }
+      .lesson-tag { min-width: 175px; }
+    }
+    @media (max-width: 860px) {
+      .app-shell { padding: 0 16px 12px; overflow: visible; }
+      .topbar { min-height: 70px; }
+      .top-actions { gap: 8px; }
+      .live-state { display: none; }
+      .brand-copy strong { font-size: 17px; }
+      .stage-nav { overflow-x: auto; }
+      .stage-button { flex: 0 0 118px; }
+      .lesson-head { align-items: start; flex-direction: column; gap: 14px; }
+      .lesson-tag { min-width: 0; }
+      .workspace { height: auto; grid-template-columns: 1fr; }
+      .stage-panel { order: -1; min-height: 500px; }
+      #sceneCanvas { min-height: 500px; }
+      .control-panel, .teacher-panel { min-height: 0; }
+      .panel-body { max-height: none; }
+      .bottom-bar { flex-wrap: wrap; }
+      .progress-line { order: 3; flex-basis: 100%; }
+      .bottom-actions { margin-left: 0; }
+    }
+    @media (max-width: 540px) {
+      .brand-mark { width: 40px; height: 40px; border-radius: 12px; }
+      .brand-copy small { font-size: 9px; }
+      .top-button span { display: none; }
+      .stage-panel, #sceneCanvas { min-height: 380px; }
+      .stage-heading { left: 17px; right: 17px; }
+      .stage-chip { left: 17px; }
+      .stage-legend { padding: 0 14px; gap: 9px; }
+      .stage-legend small { display: none; }
+      .play-state { min-width: 0; }
+      .bottom-actions { width: 100%; }
+      .bottom-button { flex: 1; }
+      footer { align-items: flex-start; flex-direction: column; gap: 7px; }
+    }
+  </style>
+</head>
+<body>
+  <svg class="icon-sprite" aria-hidden="true" focusable="false">
+    <symbol id="icon-flask" viewBox="0 0 24 24"><path d="M9 3h6"/><path d="M10 3v6.2L4.4 18a2 2 0 0 0 1.7 3h11.8a2 2 0 0 0 1.7-3L14 9.2V3"/><path d="M7.1 16h9.8"/></symbol>
+    <symbol id="icon-expand" viewBox="0 0 24 24"><path d="M8 3H3v5M16 3h5v5M21 16v5h-5M3 16v5h5"/><path d="m3 8 5-5M21 8l-5-5M21 16l-5 5M3 16l5 5"/></symbol>
+    <symbol id="icon-eye" viewBox="0 0 24 24"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/></symbol>
+    <symbol id="icon-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m4 12-1 1 9 5 9-5-1-1M4 16l-1 1 9 5 9-5-1-1"/></symbol>
+    <symbol id="icon-camera" viewBox="0 0 24 24"><path d="M4 7h3l1.3-2h7.4L17 7h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13" r="3.5"/></symbol>
+    <symbol id="icon-play" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7V5Z"/></symbol>
+    <symbol id="icon-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
+    <symbol id="icon-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.7-3.9L3 10"/><path d="M3 5v5h5M4 13a8 8 0 0 0 14.7 3.9L21 14"/><path d="M21 19v-5h-5"/></symbol>
+    <symbol id="icon-light" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4"/><path d="M8.5 15.5A6 6 0 1 1 16 15c-.9.6-1 1.4-1 2H9.5c0-.6-.1-1-.9-1.5Z"/><path d="M12 2v1.5M4.9 4.9 6 6M2 12h1.5M19.1 4.9 18 6M22 12h-1.5"/></symbol>
+    <symbol id="icon-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></symbol>
+    <symbol id="icon-question" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9a2.5 2.5 0 1 1 4 2c-1 .7-1.6 1.1-1.6 2.4M12 17h.01"/></symbol>
+    <symbol id="icon-check" viewBox="0 0 24 24"><path d="m5 12 4.5 4.5L19 7"/></symbol>
+    <symbol id="icon-reset" viewBox="0 0 24 24"><path d="M4 8a8 8 0 1 1 0 8"/><path d="M4 4v4h4"/></symbol>
+  </svg>
+
+  <div class="app-shell" id="app">
+    <header class="topbar">
+      <div class="brand-block">
+        <div class="brand-mark"><svg class="icon icon-lg"><use href="#icon-flask"></use></svg></div>
+        <div class="brand-copy">
+          <strong>小学科学交互课堂 <span>SCIENCE LAB</span></strong>
+          <small>通用 3D 教学平台模板 · 观察 · 提问 · 验证</small>
+        </div>
+      </div>
+      <div class="top-actions">
+        <div class="live-state"><i class="live-dot"></i><span>离线教学模式</span></div>
+        <div class="signature"><svg class="icon"><use href="#icon-flask"></use></svg><span>课件制作：小胡老师</span></div>
+        <button class="top-button selected" id="teacherModeButton" type="button"><svg class="icon"><use href="#icon-target"></use></svg><span>教师模式</span></button>
+        <button class="top-button" id="fullscreenButton" type="button" aria-label="切换全屏"><svg class="icon"><use href="#icon-expand"></use></svg><span>全屏</span></button>
+      </div>
+    </header>
+
+    <nav class="stage-nav" aria-label="课堂阶段导航" id="stageNav"></nav>
+
+    <section class="lesson-head" aria-live="polite">
+      <div>
+        <div class="eyebrow" id="stageEyebrow">SCIENCE CLASSROOM / 01</div>
+        <h1 id="stageTitle">观察这个现象，你发现了什么？</h1>
+        <p id="stageDescription">先描述看见的变化，不急着解释原因。</p>
+      </div>
+      <div class="lesson-tag"><span>通用课堂原则</span><strong>一屏只解决一个主要问题</strong></div>
+    </section>
+
+    <main class="workspace">
+      <aside class="panel control-panel" aria-label="教师控制台">
+        <div class="panel-title"><svg class="icon"><use href="#icon-layers"></use></svg><span>教师控制台</span><span class="panel-index">01</span></div>
+        <div class="panel-body">
+          <p class="section-label">可视化图层</p>
+          <div class="control-list">
+            <button class="layer-control" type="button" data-layer="objects" role="switch" aria-checked="true"><span>观察对象<small>OBJECTS</small></span><i class="toggle"></i></button>
+            <button class="layer-control" type="button" data-layer="guide" role="switch" aria-checked="true"><span>空间辅助线<small>GUIDE LINES</small></span><i class="toggle"></i></button>
+            <button class="layer-control" type="button" data-layer="light" role="switch" aria-checked="true"><span>环境光层<small>LIGHT LAYER</small></span><i class="toggle"></i></button>
+          </div>
+          <div class="separator"></div>
+          <p class="section-label">观察视角</p>
+          <div class="view-grid">
+            <button class="tool-button selected" type="button" data-camera="teaching"><svg class="icon"><use href="#icon-camera"></use></svg>教学视角</button>
+            <button class="tool-button" type="button" data-camera="free"><svg class="icon"><use href="#icon-eye"></use></svg>自由观察</button>
+            <button class="tool-button" type="button" data-camera="section"><svg class="icon"><use href="#icon-layers"></use></svg>剖面视角</button>
+          </div>
+          <div class="separator"></div>
+          <p class="section-label">必要控制</p>
+          <div class="animation-row">
+            <button class="tool-button" id="playButton" type="button"><svg class="icon"><use href="#icon-pause"></use></svg><span>暂停</span></button>
+            <button class="tool-button" id="replayButton" type="button"><svg class="icon"><use href="#icon-refresh"></use></svg><span>重播</span></button>
+          </div>
+        </div>
+        <div class="panel-foot"><i class="live-dot"></i><span>WEBGL / OFFLINE READY</span></div>
+      </aside>
+
+      <section class="stage-panel" aria-label="三维科学观察主舞台">
+        <div class="stage-heading"><span><i></i> 通用科学观察装置</span><small>3D SIMULATION</small></div>
+        <div class="stage-chip" id="cameraHint">教学视角 · 可切换自由观察</div>
+        <canvas id="sceneCanvas" aria-label="可旋转、可缩放的通用科学 3D 场景"></canvas>
+        <div class="canvas-fallback" id="canvasFallback">当前设备未能启动 3D 画面。请使用支持 WebGL 的 Chrome 或 Edge，并开启硬件加速。课堂问题和模板控制仍可继续使用。</div>
+        <div class="canvas-hint">拖动旋转 · 滚轮缩放 · 点击对象</div>
+        <div class="scene-label" id="sceneLabel">可替换器材 / 场景占位</div>
+        <div class="stage-legend"><span class="legend-item"><i class="legend-dot teal"></i>观察对象 A</span><span class="legend-item"><i class="legend-dot amber"></i>观察对象 B</span><small>概念示意 · 具体课程由教师填入</small></div>
+      </section>
+
+      <aside class="panel teacher-panel" aria-label="教师问题与预测">
+        <div class="panel-title"><svg class="icon"><use href="#icon-question"></use></svg><span>教师问题</span><span class="panel-index">02</span></div>
+        <div class="panel-body">
+          <div class="question-kicker">先预测，再观察</div>
+          <h2 class="question-title">观察这个现象，你发现了什么？</h2>
+          <p class="question-desc">模板只提供观察结构，不预设具体课程结论。请把当前课程的科学证据替换到这里。</p>
+          <div class="prompt-box">
+            <strong>记录你的预测</strong>
+            <p>先选择一个方向，结果暂时不会自动揭晓。</p>
+            <div class="prediction-list" id="predictionList">
+              <button class="prediction-button" type="button" data-prediction="different">A 与 B 可能不同</button>
+              <button class="prediction-button" type="button" data-prediction="same">A 与 B 可能相同</button>
+              <button class="prediction-button" type="button" data-prediction="unknown">我还不能判断</button>
+            </div>
+            <div class="prediction-status" id="predictionStatus" aria-live="polite">尚未记录预测。</div>
+          </div>
+          <button class="reveal-button" id="revealButton" type="button"><svg class="icon"><use href="#icon-eye"></use></svg><span>揭晓 / 隐藏结果</span></button>
+          <div class="result-box" id="resultBox" hidden><strong>结果区域</strong>这里保留为通用模板占位。具体课程应在教材、教案和真实观察证据基础上填入结论。</div>
+          <div class="science-note"><strong>模板提示</strong><p>数字模拟用于组织观察和表达，不替代适合学生亲手完成的真实实验。</p></div>
+        </div>
+      </aside>
+    </main>
+
+    <section class="bottom-bar" aria-label="课堂流程控制">
+      <div class="play-state"><button class="play-button" id="bottomPlayButton" type="button" aria-label="暂停动画"><svg class="icon"><use href="#icon-pause"></use></svg></button><div class="play-copy"><strong id="playLabel">正在观察</strong><small id="playDescription">动画可暂停或重播</small></div></div>
+      <div class="progress-line" id="progressLine"></div>
+      <div class="bottom-actions"><button class="bottom-button" id="resetButton" type="button"><svg class="icon"><use href="#icon-reset"></use></svg>重置</button><button class="bottom-button" id="bottomFullscreenButton" type="button"><svg class="icon"><use href="#icon-expand"></use></svg>全屏</button></div>
+    </section>
+
+    <footer><div class="footer-left"><span class="footer-mark">SCIENCE LAB</span><span class="footer-divider">/</span><span>观察 · 提问 · 验证 · 发现</span></div><div class="footer-right"><span>通用小学科学交互教学平台</span><span>课件制作：小胡老师</span></div></footer>
+  </div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const stages = [
+        { name: "问题", eyebrow: "SCIENCE CLASSROOM / 01", title: "观察这个现象，你发现了什么？", description: "先描述看见的变化，不急着解释原因。" },
+        { name: "探究", eyebrow: "SCIENCE CLASSROOM / 02", title: "改变一个观察条件，再看一遍。", description: "用控制台切换图层、视角或动画，寻找可描述的证据。" },
+        { name: "解释", eyebrow: "SCIENCE CLASSROOM / 03", title: "把现象和证据联系起来。", description: "结果区域保留给当前课程的科学解释和适用范围。" },
+        { name: "应用", eyebrow: "SCIENCE CLASSROOM / 04", title: "把这个观察方法带到新的情境。", description: "尝试提出一个可以继续验证的新问题。" }
+      ];
+      const state = {
+        stage: 0,
+        playing: true,
+        selectedPrediction: null,
+        resultVisible: false,
+        cameraMode: "teaching",
+        layers: { objects: true, guide: true, light: true }
+      };
+      const $ = (selector) => document.querySelector(selector);
+      const $$ = (selector) => Array.from(document.querySelectorAll(selector));
+
+      function renderStage() {
+        const current = stages[state.stage];
+        $("#stageEyebrow").textContent = current.eyebrow;
+        $("#stageTitle").textContent = current.title;
+        $("#stageDescription").textContent = current.description;
+        $$("[data-stage]").forEach((button) => {
+          const active = Number(button.dataset.stage) === state.stage;
+          button.classList.toggle("active", active);
+          button.setAttribute("aria-current", active ? "step" : "false");
+        });
+        $$("[data-progress]").forEach((button) => {
+          const active = Number(button.dataset.progress) === state.stage;
+          button.classList.toggle("active", active);
+          button.setAttribute("aria-current", active ? "step" : "false");
+        });
+      }
+
+      function renderPlayState() {
+        const iconId = state.playing ? "#icon-pause" : "#icon-play";
+        const label = state.playing ? "正在观察" : "动画已暂停";
+        const buttonLabel = state.playing ? "暂停动画" : "继续动画";
+        [$("#playButton"), $("#bottomPlayButton")].forEach((button) => {
+          if (!button) return;
+          const use = button.querySelector("use");
+          if (use) use.setAttribute("href", iconId);
+          button.setAttribute("aria-label", buttonLabel);
+        });
+        $("#playButton span").textContent = state.playing ? "暂停" : "继续";
+        $("#playLabel").textContent = label;
+        $("#playDescription").textContent = state.playing ? "动画可暂停或重播" : "按继续恢复观察";
+      }
+
+      function renderPrediction() {
+        $$("[data-prediction]").forEach((button) => button.classList.toggle("selected", button.dataset.prediction === state.selectedPrediction));
+        $("#predictionStatus").textContent = state.selectedPrediction ? "预测已记录。先保留你的判断，再观察场景。" : "尚未记录预测。";
+        $("#resultBox").hidden = !state.resultVisible;
+        const use = $("#revealButton use");
+        if (use) use.setAttribute("href", state.resultVisible ? "#icon-eye" : "#icon-target");
+      }
+
+      function renderCamera() {
+        $$("[data-camera]").forEach((button) => button.classList.toggle("selected", button.dataset.camera === state.cameraMode));
+        const labels = { teaching: "教学视角 · 可切换自由观察", free: "自由观察 · 拖动旋转 / 滚轮缩放", section: "剖面视角 · 观察内部层次" };
+        $("#cameraHint").textContent = labels[state.cameraMode];
+      }
+
+      function renderLayers() {
+        $$("[data-layer]").forEach((button) => button.setAttribute("aria-checked", String(state.layers[button.dataset.layer])));
+        scene.setLayers(state.layers);
+      }
+
+      function renderNavigation() {
+        $("#stageNav").innerHTML = stages.map((item, index) => `<button class="stage-button" type="button" data-stage="${index}"><span class="stage-index">0${index + 1}</span><span>${item.name}</span></button>`).join("");
+        $("#progressLine").innerHTML = stages.map((item, index) => `<button class="progress-step" type="button" data-progress="${index}"><span class="progress-index">${index + 1}</span><span>${item.name}</span></button>`).join("");
+        $$('[data-stage], [data-progress]').forEach((button) => button.addEventListener("click", () => { state.stage = Number(button.dataset.stage ?? button.dataset.progress); renderStage(); scene.setStage(state.stage); }));
+        renderStage();
+      }
+
+      function togglePlayback() { state.playing = !state.playing; scene.setPlaying(state.playing); renderPlayState(); }
+      function resetTemplate() { state.stage = 0; state.playing = true; state.selectedPrediction = null; state.resultVisible = false; state.cameraMode = "teaching"; state.layers = { objects: true, guide: true, light: true }; renderStage(); renderPlayState(); renderPrediction(); renderCamera(); renderLayers(); scene.reset(); }
+
+      class ScienceScene {
+        constructor(canvas) {
+          this.canvas = canvas;
+          this.gl = canvas.getContext("webgl", { antialias: true, alpha: false, powerPreference: "high-performance" });
+          this.ready = Boolean(this.gl);
+          this.playing = true;
+          this.stage = 0;
+          this.cameraMode = "teaching";
+          this.layers = { objects: true, guide: true, light: true };
+          this.time = 0;
+          this.last = 0;
+          this.dragging = false;
+          this.moved = false;
+          this.pointer = { x: 0, y: 0 };
+          this.orbit = { yaw: .28, pitch: .37, distance: 9.8 };
+          this.selected = "core";
+          this.program = null;
+          this.meshes = {};
+          if (!this.ready) return;
+          this.init();
+          this.bind();
+          this.resize();
+          requestAnimationFrame((now) => this.frame(now));
+        }
+
+        init() {
+          const gl = this.gl;
+          const vertex = `attribute vec3 aPosition; attribute vec3 aNormal; uniform mat4 uModel; uniform mat4 uView; uniform mat4 uProjection; varying vec3 vNormal; varying vec3 vWorld; void main(){ vec4 world=uModel*vec4(aPosition,1.0); vWorld=world.xyz; vNormal=mat3(uModel)*aNormal; gl_Position=uProjection*uView*world; }`;
+          const fragment = `precision mediump float; uniform vec3 uColor; uniform vec3 uLight; uniform vec3 uCamera; uniform float uAlpha; uniform float uMetalness; uniform float uRoughness; uniform float uEmission; uniform float uLightStrength; uniform float uSelected; varying vec3 vNormal; varying vec3 vWorld; void main(){ vec3 n=normalize(vNormal); vec3 l=normalize(-uLight); vec3 v=normalize(uCamera-vWorld); vec3 h=normalize(l+v); float diffuse=max(dot(n,l),0.0); float spec=pow(max(dot(n,h),0.0),mix(8.0,64.0,1.0-uRoughness))*(0.08+uMetalness*.28); vec3 color=uColor*(.25+diffuse*.78*uLightStrength)+vec3(spec)+uColor*uEmission; float edge=pow(1.0-max(dot(n,v),0.0),2.0); color+=vec3(.16,.55,.52)*edge*uSelected*.65; gl_FragColor=vec4(color,uAlpha); }`;
+          this.program = this.createProgram(vertex, fragment);
+          this.locations = {
+            position: gl.getAttribLocation(this.program, "aPosition"), normal: gl.getAttribLocation(this.program, "aNormal"), model: gl.getUniformLocation(this.program, "uModel"), view: gl.getUniformLocation(this.program, "uView"), projection: gl.getUniformLocation(this.program, "uProjection"), color: gl.getUniformLocation(this.program, "uColor"), light: gl.getUniformLocation(this.program, "uLight"), camera: gl.getUniformLocation(this.program, "uCamera"), alpha: gl.getUniformLocation(this.program, "uAlpha"), metalness: gl.getUniformLocation(this.program, "uMetalness"), roughness: gl.getUniformLocation(this.program, "uRoughness"), emission: gl.getUniformLocation(this.program, "uEmission"), lightStrength: gl.getUniformLocation(this.program, "uLightStrength"), selected: gl.getUniformLocation(this.program, "uSelected")
+          };
+          this.meshes.cube = this.createMesh(this.cubeGeometry());
+          this.meshes.cylinder = this.createMesh(this.cylinderGeometry(1, 1, 32));
+          this.meshes.sphere = this.createMesh(this.sphereGeometry(1, 18, 12));
+          this.meshes.torus = this.createMesh(this.torusGeometry(.72, .08, 36, 10));
+          this.meshes.plane = this.createMesh(this.planeGeometry());
+          gl.useProgram(this.program);
+          gl.enable(gl.DEPTH_TEST);
+          gl.enable(gl.CULL_FACE);
+          gl.clearColor(.035, .11, .14, 1);
+        }
+
+        createProgram(vertexSource, fragmentSource) {
+          const gl = this.gl;
+          const compile = (type, source) => { const shader = gl.createShader(type); gl.shaderSource(shader, source); gl.compileShader(shader); if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(shader)); return shader; };
+          const program = gl.createProgram(); gl.attachShader(program, compile(gl.VERTEX_SHADER, vertexSource)); gl.attachShader(program, compile(gl.FRAGMENT_SHADER, fragmentSource)); gl.linkProgram(program); if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program)); return program;
+        }
+
+        createMesh(data) {
+          const gl = this.gl;
+          const position = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, position); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data.positions), gl.STATIC_DRAW);
+          const normal = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, normal); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data.normals), gl.STATIC_DRAW);
+          const index = gl.createBuffer(); gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, index); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(data.indices), gl.STATIC_DRAW);
+          return { position, normal, index, count: data.indices.length };
+        }
+
+        cubeGeometry() {
+          const p = [], n = [], i = [], faces = [
+            [[0,0,1], [[-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]]], [[0,0,-1], [[1,-1,-1],[-1,-1,-1],[-1,1,-1],[1,1,-1]]],
+            [[1,0,0], [[1,-1,1],[1,-1,-1],[1,1,-1],[1,1,1]]], [[-1,0,0], [[-1,-1,-1],[-1,-1,1],[-1,1,1],[-1,1,-1]]],
+            [[0,1,0], [[-1,1,1],[1,1,1],[1,1,-1],[-1,1,-1]]], [[0,-1,0], [[-1,-1,-1],[1,-1,-1],[1,-1,1],[-1,-1,1]]]
+          ];
+          faces.forEach(([normal, verts]) => { const start = p.length / 3; verts.forEach((v) => { p.push(...v); n.push(...normal); }); i.push(start,start+1,start+2,start,start+2,start+3); });
+          return { positions: p, normals: n, indices: i };
+        }
+
+        cylinderGeometry(radius, height, segments) {
+          const p = [], n = [], i = [], half = height / 2;
+          for (let row = 0; row <= 1; row++) for (let s = 0; s <= segments; s++) { const a = s / segments * Math.PI * 2; p.push(Math.cos(a)*radius, row ? half : -half, Math.sin(a)*radius); n.push(Math.cos(a), 0, Math.sin(a)); }
+          for (let s = 0; s < segments; s++) { const a=s, b=s+1, c=segments+1+s+1, d=segments+1+s; i.push(a,d,b,b,d,c); }
+          const top = p.length/3; p.push(0,half,0); n.push(0,1,0); const bottom = p.length/3; p.push(0,-half,0); n.push(0,-1,0);
+          for(let s=0;s<segments;s++){const a=s,b=(s+1)%segments, c=segments+1+s,d=segments+1+(s+1)%segments;i.push(top,c,d,top,d,bottom,bottom,b,a);}
+          return { positions:p,normals:n,indices:i };
+        }
+
+        sphereGeometry(radius, segments, rows) {
+          const p=[],n=[],i=[]; for(let r=0;r<=rows;r++){const v=r/rows,phi=v*Math.PI;for(let s=0;s<=segments;s++){const u=s/segments,theta=u*Math.PI*2,x=Math.sin(phi)*Math.cos(theta),y=Math.cos(phi),z=Math.sin(phi)*Math.sin(theta);p.push(x*radius,y*radius,z*radius);n.push(x,y,z);}} for(let r=0;r<rows;r++)for(let s=0;s<segments;s++){const a=r*(segments+1)+s,b=a+1,c=a+segments+1,d=c+1;i.push(a,c,b,b,c,d);} return {positions:p,normals:n,indices:i};
+        }
+
+        torusGeometry(major, minor, majorSegments, minorSegments) {
+          const p=[],n=[],i=[]; for(let r=0;r<=minorSegments;r++){const v=r/minorSegments*Math.PI*2;for(let s=0;s<=majorSegments;s++){const u=s/majorSegments*Math.PI*2,cosV=Math.cos(v),sinV=Math.sin(v),x=(major+minor*cosV)*Math.cos(u),y=minor*sinV,z=(major+minor*cosV)*Math.sin(u);p.push(x,y,z);n.push(cosV*Math.cos(u),sinV,cosV*Math.sin(u));}} for(let r=0;r<minorSegments;r++)for(let s=0;s<majorSegments;s++){const a=r*(majorSegments+1)+s,b=a+1,c=a+majorSegments+1,d=c+1;i.push(a,c,b,b,c,d);} return {positions:p,normals:n,indices:i};
+        }
+
+        planeGeometry() { return { positions: [-1,0,-1,1,0,-1,1,0,1,-1,0,1], normals: [0,1,0,0,1,0,0,1,0,0,1,0], indices: [0,1,2,0,2,3] }; }
+
+        bind() {
+          const canvas = this.canvas;
+          const start = (event) => { this.dragging = true; this.moved = false; this.pointer = this.point(event); canvas.setPointerCapture?.(event.pointerId); };
+          const move = (event) => { if (!this.dragging) return; const point = this.point(event); const dx = point.x - this.pointer.x, dy = point.y - this.pointer.y; if (Math.abs(dx)+Math.abs(dy)>2) this.moved = true; this.pointer = point; if (this.cameraMode === "teaching") return; this.orbit.yaw += dx * .008; this.orbit.pitch = clamp(this.orbit.pitch + dy * .006, .12, 1.26); };
+          const end = (event) => { if (!this.dragging) return; this.dragging = false; if (!this.moved) this.pick(this.point(event)); };
+          canvas.addEventListener("pointerdown", start); canvas.addEventListener("pointermove", move); canvas.addEventListener("pointerup", end); canvas.addEventListener("pointercancel", () => { this.dragging = false; });
+          canvas.addEventListener("wheel", (event) => { event.preventDefault(); this.orbit.distance = clamp(this.orbit.distance + event.deltaY * .008, 6.2, 16); }, { passive: false });
+        }
+
+        point(event) { const rect = this.canvas.getBoundingClientRect(); return { x: event.clientX - rect.left, y: event.clientY - rect.top }; }
+        setPlaying(value) { this.playing = value; }
+        setStage(value) { this.stage = value; }
+        setCameraMode(value) { this.cameraMode = value; if (value === "teaching") this.orbit = { yaw: .28, pitch: .37, distance: 9.8 }; if (value === "section") this.orbit = { yaw: .02, pitch: .23, distance: 8.3 }; }
+        setLayers(value) { this.layers = { ...value }; }
+        reset() { this.orbit = { yaw: .28, pitch: .37, distance: 9.8 }; this.cameraMode = "teaching"; this.stage = 0; this.playing = true; this.selected = "core"; }
+        resize() { const dpr = Math.min(window.devicePixelRatio || 1, 1.6), rect = this.canvas.getBoundingClientRect(); this.canvas.width = Math.max(1, Math.floor(rect.width*dpr)); this.canvas.height = Math.max(1, Math.floor(rect.height*dpr)); this.gl.viewport(0,0,this.canvas.width,this.canvas.height); }
+        camera() { const aspect = this.canvas.width / this.canvas.height, projection = perspective(Math.PI/3.2, aspect, .1, 60), target = [0,1.15,0], angle = this.orbit.yaw, pitch = this.orbit.pitch, distance = this.orbit.distance, position = [Math.sin(angle)*Math.cos(pitch)*distance, Math.sin(pitch)*distance+1.4, Math.cos(angle)*Math.cos(pitch)*distance]; if (this.cameraMode === "section") position[2] = 7.2; return { projection, view: lookAt(position, target, [0,1,0]), position }; }
+        model(position, scale, rotation = [0,0,0]) { let m = identity(); m = multiply(m, translate(position[0],position[1],position[2])); m = multiply(m, rotateY(rotation[1])); m = multiply(m, rotateX(rotation[0])); m = multiply(m, rotateZ(rotation[2])); return multiply(m, scaleMatrix(scale[0],scale[1],scale[2])); }
+        draw(mesh, model, color, options = {}) { const gl=this.gl, loc=this.locations; gl.bindBuffer(gl.ARRAY_BUFFER, mesh.position); gl.enableVertexAttribArray(loc.position); gl.vertexAttribPointer(loc.position,3,gl.FLOAT,false,0,0); gl.bindBuffer(gl.ARRAY_BUFFER, mesh.normal); gl.enableVertexAttribArray(loc.normal); gl.vertexAttribPointer(loc.normal,3,gl.FLOAT,false,0,0); gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, mesh.index); gl.uniformMatrix4fv(loc.model,false,new Float32Array(model)); gl.uniform3fv(loc.color,new Float32Array(color)); gl.uniform1f(loc.alpha,options.alpha ?? 1); gl.uniform1f(loc.metalness,options.metalness ?? .1); gl.uniform1f(loc.roughness,options.roughness ?? .68); gl.uniform1f(loc.emission,options.emission ?? 0); gl.uniform1f(loc.selected,options.selected ? 1 : 0); gl.drawElements(gl.TRIANGLES,mesh.count,gl.UNSIGNED_SHORT,0); }
+        renderScene(camera) {
+          const gl=this.gl, t=this.time, pulse=this.playing ? Math.sin(t*2.1)*.04 : 0, objectVisible=this.layers.objects;
+          gl.useProgram(this.program); gl.uniformMatrix4fv(this.locations.view,false,new Float32Array(camera.view)); gl.uniformMatrix4fv(this.locations.projection,false,new Float32Array(camera.projection)); gl.uniform3fv(this.locations.light,new Float32Array(this.layers.light ? [-.45,.88,.35] : [-.3,.6,.5])); gl.uniform3fv(this.locations.camera,new Float32Array(camera.position)); gl.uniform1f(this.locations.lightStrength,this.layers.light ? 1 : .52);
+          gl.disable(gl.BLEND); gl.depthMask(true); gl.enable(gl.CULL_FACE);
+          this.draw(this.meshes.cube,this.model([0,-.45,0],[6.4,.35,4.2]),[.08,.22,.24],{roughness:.92});
+          this.draw(this.meshes.cube,this.model([0,-.04,0],[5.6,.13,3.4]),[.12,.36,.38],{metalness:.35,roughness:.5});
+          if(this.layers.guide){ for(let x=-5;x<=5;x+=1){this.draw(this.meshes.cube,this.model([x*.9,.11,-3.1],[.008,.012,3.1]),[.28,.62,.62],{alpha:.28,emission:.06});} for(let z=-3;z<=3;z+=1){this.draw(this.meshes.cube,this.model([0,.115,z],[5.4,.012,.008]),[.28,.62,.62],{alpha:.24,emission:.05});} }
+          this.draw(this.meshes.cube,this.model([0,2.65,0],[4.8,.055,2.85]),[.54,.80,.78],{alpha:.16,metalness:.05,roughness:.2});
+          [[-4.65,1.25,-2.55],[-4.65,1.25,2.55],[4.65,1.25,-2.55],[4.65,1.25,2.55]].forEach((p)=>this.draw(this.meshes.cube,this.model(p,[.12,2.55,.12]),[.32,.58,.58],{metalness:.48,roughness:.28}));
+          if(objectVisible){
+            const ay=1.05+Math.sin(t*1.4)*.06, by=1.12+Math.sin(t*1.4+1.6)*.05;
+            this.draw(this.meshes.cylinder,this.model([-1.65,ay,0],[.75,1.2,.75]),[.18,.62,.64],{metalness:.18,roughness:.25,emission:.07,selected:this.selected==="a"});
+            this.draw(this.meshes.torus,this.model([-1.65,1.69,0],[1,1,1]),[.38,.77,.72],{metalness:.45,roughness:.24,selected:this.selected==="a"});
+            this.draw(this.meshes.sphere,this.model([1.65,by,0],[.85,.85,.85]),[.78,.49,.24],{metalness:.35,roughness:.32,emission:.04,selected:this.selected==="b"});
+            this.draw(this.meshes.torus,this.model([1.65,.28,0],[1.08,.72,1.08]),[.45,.60,.52],{metalness:.42,roughness:.26,selected:this.selected==="b"});
+          }
+          this.draw(this.meshes.cylinder,this.model([0,1.24,0],[.11,1.75,.11]),[.59,.83,.79],{metalness:.15,roughness:.28});
+          this.draw(this.meshes.sphere,this.model([0,2.18+pulse,0],[.45,.45,.45]),[.49,.86,.79],{metalness:.14,roughness:.18,emission:.22,selected:this.selected==="core"});
+          this.draw(this.meshes.torus,this.model([0,.45,0],[1.3,1.3,1.3]),[.25,.62,.62],{metalness:.52,roughness:.24,emission:.03,selected:this.selected==="core"});
+          gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA); gl.depthMask(false); gl.disable(gl.CULL_FACE);
+          this.draw(this.meshes.cube,this.model([0,1.27,0],[4.72,2.45,2.76]),[.35,.78,.77],{alpha:.075,metalness:.02,roughness:.14});
+          gl.depthMask(true); gl.disable(gl.BLEND); gl.enable(gl.CULL_FACE);
+        }
+        pick(point) { const rect=this.canvas.getBoundingClientRect(), x=point.x/rect.width*2-1, y=1-point.y/rect.height*2; this.selected=Math.abs(x+.22)<.2 ? "a" : Math.abs(x-.22)<.2 ? "b" : "core"; $("#sceneLabel").textContent = this.selected === "a" ? "已选中 · 观察对象 A" : this.selected === "b" ? "已选中 · 观察对象 B" : "可替换器材 / 场景占位"; }
+        frame(now) { if(!this.ready)return; const delta=Math.min((now-this.last)/1000 || .016,.05); this.last=now; if(this.playing)this.time+=delta; this.resize(); const gl=this.gl; gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT); this.renderScene(this.camera()); requestAnimationFrame((next)=>this.frame(next)); }
+      }
+
+      function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
+      function identity() { return [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]; }
+      function multiply(a,b) { const out=new Array(16).fill(0); for(let row=0;row<4;row++)for(let col=0;col<4;col++)for(let k=0;k<4;k++)out[col*4+row]+=a[k*4+row]*b[col*4+k]; return out; }
+      function translate(x,y,z) { const m=identity();m[12]=x;m[13]=y;m[14]=z;return m; }
+      function scaleMatrix(x,y,z) { const m=identity();m[0]=x;m[5]=y;m[10]=z;return m; }
+      function rotateX(a) { const c=Math.cos(a),s=Math.sin(a),m=identity();m[5]=c;m[6]=s;m[9]=-s;m[10]=c;return m; }
+      function rotateY(a) { const c=Math.cos(a),s=Math.sin(a),m=identity();m[0]=c;m[2]=-s;m[8]=s;m[10]=c;return m; }
+      function rotateZ(a) { const c=Math.cos(a),s=Math.sin(a),m=identity();m[0]=c;m[1]=s;m[4]=-s;m[5]=c;return m; }
+      function perspective(fov, aspect, near, far) { const f=1/Math.tan(fov/2),nf=1/(near-far);return [f/aspect,0,0,0,0,f,0,0,0,0,(far+near)*nf,-1,0,0,2*far*near*nf,0]; }
+      function lookAt(eye,target,up) { const z=normalize([eye[0]-target[0],eye[1]-target[1],eye[2]-target[2]]),x=normalize(cross(up,z)),y=cross(z,x);return [x[0],y[0],z[0],0,x[1],y[1],z[1],0,x[2],y[2],z[2],0,-dot(x,eye),-dot(y,eye),-dot(z,eye),1]; }
+      function dot(a,b){return a[0]*b[0]+a[1]*b[1]+a[2]*b[2];}
+      function cross(a,b){return [a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];}
+      function normalize(a){const l=Math.hypot(a[0],a[1],a[2])||1;return [a[0]/l,a[1]/l,a[2]/l];}
+
+      let scene;
+      try { scene = new ScienceScene($("#sceneCanvas")); if (!scene.ready) $("#canvasFallback").classList.add("show"); } catch (error) { $("#canvasFallback").classList.add("show"); console.error("3D scene initialization failed", error); scene = { setLayers(){}, setPlaying(){}, setStage(){}, setCameraMode(){}, reset(){} }; }
+
+      renderNavigation(); renderPlayState(); renderPrediction(); renderCamera(); renderLayers();
+      $$("[data-layer]").forEach((button) => button.addEventListener("click", () => { const key=button.dataset.layer; state.layers[key]=!state.layers[key]; renderLayers(); }));
+      $$("[data-camera]").forEach((button) => button.addEventListener("click", () => { state.cameraMode=button.dataset.camera; scene.setCameraMode(state.cameraMode); renderCamera(); }));
+      $$("[data-prediction]").forEach((button) => button.addEventListener("click", () => { state.selectedPrediction=button.dataset.prediction; renderPrediction(); }));
+      $("#revealButton").addEventListener("click", () => { state.resultVisible=!state.resultVisible; renderPrediction(); });
+      $("#playButton").addEventListener("click", togglePlayback); $("#bottomPlayButton").addEventListener("click", togglePlayback);
+      $("#replayButton").addEventListener("click", () => { state.playing=true; scene.reset(); scene.setCameraMode(state.cameraMode); scene.setStage(state.stage); renderPlayState(); renderCamera(); });
+      $("#resetButton").addEventListener("click", resetTemplate);
+      const enterFullscreen = async () => { try { if(document.fullscreenElement) await document.exitFullscreen(); else await document.documentElement.requestFullscreen(); } catch (error) { console.warn("Fullscreen is unavailable in this browser context", error); } };
+      $("#fullscreenButton").addEventListener("click", enterFullscreen); $("#bottomFullscreenButton").addEventListener("click", enterFullscreen);
+      $("#teacherModeButton").addEventListener("click", (event) => { const active=event.currentTarget.classList.toggle("selected"); event.currentTarget.querySelector("span").textContent=active ? "教师模式" : "学生模式"; });
+      window.addEventListener("resize", () => scene.resize?.());
+    })();
+  </script>
+</body>
+</html>
