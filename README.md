@@ -8,7 +8,7 @@
 - [风的成因](lessons/风的成因/output/风的成因_小胡老师课堂版.html)
 - [微观之间](lessons/微观之间/output/微观之间_小胡老师课堂版.html)
 
-项目主页：<https://yokey1016-arch.github.io/xiaoxue-kexue-classroom/>
+项目主页：<https://gmexkiller.github.io/xiaoxue-kexue-classroom/>
 
 ## 本地开发
 
