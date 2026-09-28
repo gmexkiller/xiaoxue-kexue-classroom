@@ -8,6 +8,13 @@
 - [风的成因](lessons/风的成因/output/风的成因_小胡老师课堂版.html)
 - [微观之间](lessons/微观之间/output/微观之间_小胡老师课堂版.html)
 
+## 互动演示
+
+- [观测风](reference-ui/secondary/观测风.html)
+- [空气有质量吗](reference-ui/secondary/空气有质量吗.html)
+- [空气占据的空间能改变吗](reference-ui/secondary/空气占据的空间能改变吗.html)
+- [气温计与读数](reference-ui/secondary/温度计显示模拟.html)
+
 项目主页：<https://gmexkiller.github.io/xiaoxue-kexue-classroom/>
 
 ## 本地开发
